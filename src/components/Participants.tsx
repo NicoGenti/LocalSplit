@@ -36,10 +36,11 @@ export function Participants() {
         <button
           type="submit"
           disabled={!newName.trim()}
-          className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors shrink-0"
+          className="bg-blue-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors shrink-0"
+          aria-label="Aggiungi partecipante"
         >
           <UserPlus size={18} />
-          <span>Aggiungi</span>
+          <span className="hidden sm:inline">Aggiungi</span>
         </button>
       </form>
 
