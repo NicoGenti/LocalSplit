@@ -83,26 +83,25 @@ export function Balances() {
       ) : (
         <div className="space-y-4">
           {debts.map((debt, idx) => (
-            <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 gap-4 transition-colors">
-              <div className="flex items-center gap-3 flex-1">
-                <div className="flex items-center gap-2">
+            <div key={idx} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
+              {/* Riga 1: da → a */}
+              <div className="flex items-center gap-2 flex-wrap min-w-0 mb-3">
+                <div className="flex items-center gap-2 min-w-0">
                   <Avatar name={getUserName(debt.from)} className="bg-red-500" />
-                  <span className="font-medium text-gray-800 dark:text-gray-200 truncate max-w-[100px]" title={getUserName(debt.from)}>
+                  <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.from)}>
                     {getUserName(debt.from)}
                   </span>
                 </div>
-                
                 <ArrowRight size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
-                
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <Avatar name={getUserName(debt.to)} className="bg-green-500" />
-                  <span className="font-medium text-gray-800 dark:text-gray-200 truncate max-w-[100px]" title={getUserName(debt.to)}>
+                  <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.to)}>
                     {getUserName(debt.to)}
                   </span>
                 </div>
               </div>
-              
-              <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-200 dark:border-gray-600">
+              {/* Riga 2: importo + bottone Salda */}
+              <div className="flex items-center justify-between">
                 <span className="font-bold text-gray-800 dark:text-white text-lg">
                   €{debt.amount.toFixed(2)}
                 </span>
