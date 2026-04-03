@@ -36,7 +36,7 @@ export function Participants() {
         <button
           type="submit"
           disabled={!newName.trim()}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors"
+          className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors shrink-0"
         >
           <UserPlus size={18} />
           <span>Aggiungi</span>
@@ -49,8 +49,9 @@ export function Participants() {
             <span className="font-medium text-gray-700 dark:text-gray-200">{user.name}</span>
             <button
               onClick={() => handleRemove(user.id, user.name)}
-              className="text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+              className="text-gray-400 hover:text-red-600 p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
               title="Rimuovi"
+              aria-label={`Rimuovi ${user.name}`}
             >
               <Trash2 size={18} />
             </button>
