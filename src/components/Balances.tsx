@@ -35,7 +35,31 @@ export function Balances() {
     }
   };
 
-  if (users.length === 0 || expenses.length === 0) return null;
+  if (users.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+          <Wallet size={28} className="text-gray-400 dark:text-gray-500" />
+        </div>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          Aggiungi partecipanti nella tab <span className="font-semibold">Gruppo</span> per iniziare
+        </p>
+      </div>
+    );
+  }
+
+  if (expenses.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+          <Wallet size={28} className="text-gray-400 dark:text-gray-500" />
+        </div>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          Aggiungi una spesa nella tab <span className="font-semibold">Spese</span> per vedere i saldi
+        </p>
+      </div>
+    );
+  }
 
   const creditors = (Object.entries(balances) as [string, number][])
     .filter(([_, bal]) => bal > 0.01)
