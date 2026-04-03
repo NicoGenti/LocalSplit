@@ -141,7 +141,7 @@ export function ExpenseList() {
                   {/* Riga 2: pagato da + per chi */}
                   <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
                     <span>Pagato da</span>
-                    <span className="font-medium text-gray-700 dark:text-gray-300 truncate max-w-[80px]">{getUserName(expense.payerId)}</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-300 truncate max-w-[120px]">{getUserName(expense.payerId)}</span>
                     <span className="shrink-0">•</span>
                     <span className="shrink-0">Per:</span>
                     <div className="flex -space-x-1.5 shrink-0">
