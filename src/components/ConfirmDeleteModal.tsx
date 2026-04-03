@@ -44,13 +44,13 @@ export function ConfirmDeleteModal({ isOpen, onConfirm, onCancel }: ConfirmDelet
           <button
             ref={noButtonRef}
             onClick={onCancel}
-            className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-lg font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
+            className="flex-1 bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-4 py-3 rounded-lg font-bold hover:bg-gray-700 dark:hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
           >
             No
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 bg-red-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="flex-1 border border-red-300 dark:border-red-700 text-red-500 dark:text-red-400 px-4 py-3 rounded-lg font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-red-300"
           >
             Sì
           </button>
