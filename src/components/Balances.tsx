@@ -27,13 +27,20 @@ export function Balances() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showInfo]);
 
-  const { balances, debts } = useMemo(() => {
+  const userMap = useMemo(() => new Map(users.map(u => [u.id, u.name])), [users]);
+  const getUserName = (id: string) => userMap.get(id) ?? 'Sconosciuto';
+
+  const { balances, debts, creditors, debtors } = useMemo(() => {
     const bals = calculateBalances(expenses, users);
     const simplifiedDebts = simplifyDebts(bals);
-    return { balances: bals, debts: simplifiedDebts };
+    const creds = (Object.entries(bals) as [string, number][])
+      .filter(([_, bal]) => bal > 0.01)
+      .sort((a, b) => b[1] - a[1]);
+    const dbtrs = (Object.entries(bals) as [string, number][])
+      .filter(([_, bal]) => bal < -0.01)
+      .sort((a, b) => a[1] - b[1]);
+    return { balances: bals, debts: simplifiedDebts, creditors: creds, debtors: dbtrs };
   }, [expenses, users]);
-
-  const getUserName = (id: string) => users.find(u => u.id === id)?.name || 'Sconosciuto';
 
   const handleSettle = (debt: Debt) => {
     if (window.confirm(`Confermi che ${getUserName(debt.from)} ha pagato €${debt.amount.toFixed(2)} a ${getUserName(debt.to)}?`)) {
@@ -73,14 +80,6 @@ export function Balances() {
       </div>
     );
   }
-
-  const creditors = (Object.entries(balances) as [string, number][])
-    .filter(([_, bal]) => bal > 0.01)
-    .sort((a, b) => b[1] - a[1]);
-    
-  const debtors = (Object.entries(balances) as [string, number][])
-    .filter(([_, bal]) => bal < -0.01)
-    .sort((a, b) => a[1] - b[1]);
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
@@ -137,8 +136,8 @@ export function Balances() {
         </div>
       ) : (
         <div className="space-y-4">
-          {debts.map((debt, idx) => (
-            <div key={idx} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
+          {debts.map((debt) => (
+            <div key={`${debt.from}-${debt.to}`} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
               {/* Riga 1: da → a */}
               <div className="flex items-center gap-2 flex-wrap min-w-0 mb-3">
                 <div className="flex items-center gap-2 min-w-0 flex-1">

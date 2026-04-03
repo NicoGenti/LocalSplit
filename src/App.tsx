@@ -9,6 +9,8 @@ import { Toaster, toast } from 'react-hot-toast';
 
 type Tab = 'riepilogo' | 'spese' | 'gruppo';
 
+const DARK_TOAST_STYLE = { background: '#374151', color: '#fff' };
+
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'riepilogo', label: 'Riepilogo', icon: <Wallet size={22} /> },
   { id: 'spese',     label: 'Spese',     icon: <Receipt size={22} /> },
@@ -58,7 +60,7 @@ export default function App() {
         position="top-center"
         toastOptions={{
           duration: 3000,
-          style: isDarkMode ? { background: '#374151', color: '#fff' } : undefined,
+          style: isDarkMode ? DARK_TOAST_STYLE : undefined,
         }}
       />
 

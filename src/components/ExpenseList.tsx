@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useGroupStore } from '../store/useGroupStore';
 import { History, Utensils, Bus, ShoppingBag, Receipt, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { EditExpenseModal } from './EditExpenseModal';
@@ -25,7 +25,25 @@ export function ExpenseList() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openMenuId]);
 
-  const getUserName = (id: string) => users.find(u => u.id === id)?.name || 'Sconosciuto';
+  const userMap = useMemo(() => new Map(users.map(u => [u.id, u.name])), [users]);
+  const getUserName = (id: string) => userMap.get(id) ?? 'Sconosciuto';
+
+  const groupedExpenses = useMemo<Record<string, Expense[]>>(() => {
+    const sorted = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const today = new Date();
+    return sorted.reduce<Record<string, Expense[]>>((acc, expense) => {
+      const dateObj = new Date(expense.date);
+      const isToday = dateObj.getDate() === today.getDate() &&
+                      dateObj.getMonth() === today.getMonth() &&
+                      dateObj.getFullYear() === today.getFullYear();
+      const dateStr = isToday
+        ? `Oggi — ${dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}`
+        : dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' });
+      if (!acc[dateStr]) acc[dateStr] = [];
+      acc[dateStr].push(expense);
+      return acc;
+    }, {});
+  }, [expenses]);
 
   const handleRemove = (id: string) => {
     removeExpense(id);
@@ -45,27 +63,6 @@ export function ExpenseList() {
       </div>
     );
   }
-
-  // Sort expenses by date descending
-  const sortedExpenses = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  const groupedExpenses = sortedExpenses.reduce((acc, expense) => {
-    const dateObj = new Date(expense.date);
-    const today = new Date();
-    const isToday = dateObj.getDate() === today.getDate() && 
-                    dateObj.getMonth() === today.getMonth() && 
-                    dateObj.getFullYear() === today.getFullYear();
-    
-    const dateStr = isToday 
-      ? `Oggi — ${dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}`
-      : dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' });
-
-    if (!acc[dateStr]) {
-      acc[dateStr] = [];
-    }
-    acc[dateStr].push(expense);
-    return acc;
-  }, {} as Record<string, Expense[]>);
 
   const editingExpense = expenses.find(e => e.id === editingExpenseId);
 
@@ -95,7 +92,7 @@ export function ExpenseList() {
       </h2>
 
       <div className="space-y-4">
-        {Object.entries(groupedExpenses).map(([dateStr, dayExpenses]) => (
+        {(Object.entries(groupedExpenses) as [string, Expense[]][]).map(([dateStr, dayExpenses]) => (
           <div key={dateStr}>
             <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pl-1">{dateStr}</h3>
             <div className="space-y-2">
