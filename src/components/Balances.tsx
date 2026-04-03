@@ -1,9 +1,11 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useGroupStore } from '../store/useGroupStore';
 import { calculateBalances, simplifyDebts } from '../lib/algorithm';
-import { ArrowRight, Wallet, TrendingUp, TrendingDown, CheckCircle2, Info, X } from 'lucide-react';
+import { ArrowRight, Wallet, TrendingUp, TrendingDown, CheckCircle2, Info, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Debt } from '../types';
 import { toast } from 'react-hot-toast';
+
+const PAGE_SIZE = 5;
 
 const Avatar = ({ name, className }: { name: string, className?: string }) => (
   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm uppercase shrink-0 ${className}`}>
@@ -11,10 +13,64 @@ const Avatar = ({ name, className }: { name: string, className?: string }) => (
   </div>
 );
 
+function Pagination({ page, totalPages, onPrev, onNext }: {
+  page: number; totalPages: number; onPrev: () => void; onNext: () => void;
+}) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+      <button
+        onClick={onPrev}
+        disabled={page === 0}
+        className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronLeft size={16} />
+        Prec
+      </button>
+      <span className="text-xs text-gray-500 dark:text-gray-400">
+        {page + 1} / {totalPages}
+      </span>
+      <button
+        onClick={onNext}
+        disabled={page === totalPages - 1}
+        className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        Succ
+        <ChevronRight size={16} />
+      </button>
+    </div>
+  );
+}
+
+function SearchInput({ value, onChange, placeholder }: {
+  value: string; onChange: (v: string) => void; placeholder: string;
+}) {
+  return (
+    <div className="relative mb-3">
+      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+      />
+    </div>
+  );
+}
+
 export function Balances() {
   const { users, expenses, addExpense } = useGroupStore();
   const [showInfo, setShowInfo] = useState(false);
   const infoRef = useRef<HTMLDivElement>(null);
+
+  // Search + pagination state for each section
+  const [debtsSearch, setDebtsSearch] = useState('');
+  const [debtsPage, setDebtsPage] = useState(0);
+  const [creditorsSearch, setCreditorsSearch] = useState('');
+  const [creditorsPage, setCreditorsPage] = useState(0);
+  const [debtorsSearch, setDebtorsSearch] = useState('');
+  const [debtorsPage, setDebtorsPage] = useState(0);
 
   useEffect(() => {
     if (!showInfo) return;
@@ -55,6 +111,31 @@ export function Balances() {
     }
   };
 
+  // Filtered + paginated debts
+  const filteredDebts = debts.filter(d =>
+    getUserName(d.from).toLowerCase().includes(debtsSearch.toLowerCase()) ||
+    getUserName(d.to).toLowerCase().includes(debtsSearch.toLowerCase())
+  );
+  const debtsTotalPages = Math.max(1, Math.ceil(filteredDebts.length / PAGE_SIZE));
+  const safeDebtsPage = Math.min(debtsPage, debtsTotalPages - 1);
+  const paginatedDebts = filteredDebts.slice(safeDebtsPage * PAGE_SIZE, (safeDebtsPage + 1) * PAGE_SIZE);
+
+  // Filtered + paginated creditors
+  const filteredCreditors = creditors.filter(([userId]) =>
+    getUserName(userId).toLowerCase().includes(creditorsSearch.toLowerCase())
+  );
+  const creditorsTotalPages = Math.max(1, Math.ceil(filteredCreditors.length / PAGE_SIZE));
+  const safeCreditorsPage = Math.min(creditorsPage, creditorsTotalPages - 1);
+  const paginatedCreditors = filteredCreditors.slice(safeCreditorsPage * PAGE_SIZE, (safeCreditorsPage + 1) * PAGE_SIZE);
+
+  // Filtered + paginated debtors
+  const filteredDebtors = debtors.filter(([userId]) =>
+    getUserName(userId).toLowerCase().includes(debtorsSearch.toLowerCase())
+  );
+  const debtorsTotalPages = Math.max(1, Math.ceil(filteredDebtors.length / PAGE_SIZE));
+  const safeDebtorsPage = Math.min(debtorsPage, debtorsTotalPages - 1);
+  const paginatedDebtors = filteredDebtors.slice(safeDebtorsPage * PAGE_SIZE, (safeDebtorsPage + 1) * PAGE_SIZE);
+
   if (users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center px-4">
@@ -83,7 +164,7 @@ export function Balances() {
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
-      <div className="relative flex items-center gap-2 mb-6" ref={infoRef}>
+      <div className="relative flex items-center gap-2 mb-4" ref={infoRef}>
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
           <Wallet size={20} />
           Chi deve a chi
@@ -135,47 +216,65 @@ export function Balances() {
           <p>Tutti i conti sono in pari! 🎉</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {debts.map((debt) => (
-            <div key={`${debt.from}-${debt.to}`} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
-              {/* Riga 1: da → a */}
-              <div className="flex items-center gap-2 flex-wrap min-w-0 mb-3">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <Avatar name={getUserName(debt.from)} className="bg-red-500 shrink-0" />
-                  <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.from)}>
-                    {getUserName(debt.from)}
-                  </span>
+        <>
+          <SearchInput
+            value={debtsSearch}
+            onChange={(q) => { setDebtsSearch(q); setDebtsPage(0); }}
+            placeholder="Cerca per nome..."
+          />
+          <div className="space-y-4">
+            {paginatedDebts.map((debt) => (
+              <div key={`${debt.from}-${debt.to}`} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
+                {/* Riga 1: da → a */}
+                <div className="flex items-center gap-2 flex-wrap min-w-0 mb-3">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <Avatar name={getUserName(debt.from)} className="bg-red-500 shrink-0" />
+                    <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.from)}>
+                      {getUserName(debt.from)}
+                    </span>
+                  </div>
+                  <ArrowRight size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <Avatar name={getUserName(debt.to)} className="bg-green-500 shrink-0" />
+                    <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.to)}>
+                      {getUserName(debt.to)}
+                    </span>
+                  </div>
                 </div>
-                <ArrowRight size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <Avatar name={getUserName(debt.to)} className="bg-green-500 shrink-0" />
-                  <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.to)}>
-                    {getUserName(debt.to)}
+                {/* Riga 2: importo + bottone Salda */}
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-gray-800 dark:text-white text-lg">
+                    €{debt.amount.toFixed(2)}
                   </span>
+                  <button
+                    onClick={() => handleSettle(debt)}
+                    className="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-lg font-medium hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors text-sm"
+                  >
+                    <CheckCircle2 size={16} />
+                    Salda
+                  </button>
                 </div>
               </div>
-              {/* Riga 2: importo + bottone Salda */}
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-gray-800 dark:text-white text-lg">
-                  €{debt.amount.toFixed(2)}
-                </span>
-                <button
-                  onClick={() => handleSettle(debt)}
-                  className="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-lg font-medium hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors text-sm"
-                >
-                  <CheckCircle2 size={16} />
-                  Salda
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+            {filteredDebts.length === 0 && (
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+                Nessun risultato per "{debtsSearch}"
+              </p>
+            )}
+          </div>
+          <Pagination
+            page={safeDebtsPage}
+            totalPages={debtsTotalPages}
+            onPrev={() => setDebtsPage(p => Math.max(0, p - 1))}
+            onNext={() => setDebtsPage(p => Math.min(debtsTotalPages - 1, p + 1))}
+          />
+        </>
       )}
 
       {(creditors.length > 0 || debtors.length > 0) && (
         <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Saldi Netti</h3>
-          
+
           <div className="space-y-6">
             {creditors.length > 0 && (
               <div>
@@ -183,8 +282,13 @@ export function Balances() {
                   <TrendingUp size={16} className="text-green-500" />
                   Chi deve ricevere
                 </h4>
+                <SearchInput
+                  value={creditorsSearch}
+                  onChange={(q) => { setCreditorsSearch(q); setCreditorsPage(0); }}
+                  placeholder="Cerca per nome..."
+                />
                 <div className="space-y-2">
-                  {creditors.map(([userId, balance]) => (
+                  {paginatedCreditors.map(([userId, balance]) => (
                     <div key={userId} className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <Avatar name={getUserName(userId)} className="bg-green-500 w-6 h-6 text-xs shrink-0" />
@@ -195,7 +299,18 @@ export function Balances() {
                       </span>
                     </div>
                   ))}
+                  {filteredCreditors.length === 0 && (
+                    <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-2">
+                      Nessun risultato per "{creditorsSearch}"
+                    </p>
+                  )}
                 </div>
+                <Pagination
+                  page={safeCreditorsPage}
+                  totalPages={creditorsTotalPages}
+                  onPrev={() => setCreditorsPage(p => Math.max(0, p - 1))}
+                  onNext={() => setCreditorsPage(p => Math.min(creditorsTotalPages - 1, p + 1))}
+                />
               </div>
             )}
 
@@ -205,8 +320,13 @@ export function Balances() {
                   <TrendingDown size={16} className="text-red-500" />
                   Chi deve pagare
                 </h4>
+                <SearchInput
+                  value={debtorsSearch}
+                  onChange={(q) => { setDebtorsSearch(q); setDebtorsPage(0); }}
+                  placeholder="Cerca per nome..."
+                />
                 <div className="space-y-2">
-                  {debtors.map(([userId, balance]) => (
+                  {paginatedDebtors.map(([userId, balance]) => (
                     <div key={userId} className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <Avatar name={getUserName(userId)} className="bg-red-500 w-6 h-6 text-xs shrink-0" />
@@ -217,7 +337,18 @@ export function Balances() {
                       </span>
                     </div>
                   ))}
+                  {filteredDebtors.length === 0 && (
+                    <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-2">
+                      Nessun risultato per "{debtorsSearch}"
+                    </p>
+                  )}
                 </div>
+                <Pagination
+                  page={safeDebtorsPage}
+                  totalPages={debtorsTotalPages}
+                  onPrev={() => setDebtorsPage(p => Math.max(0, p - 1))}
+                  onNext={() => setDebtorsPage(p => Math.min(debtorsTotalPages - 1, p + 1))}
+                />
               </div>
             )}
           </div>
