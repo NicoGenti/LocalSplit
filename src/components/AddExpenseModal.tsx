@@ -39,7 +39,7 @@ export function AddExpenseModal({ isOpen, onClose }: AddExpenseModalProps) {
         </div>
         {/* Body — AddExpense form without its own card wrapper */}
         <div className="overflow-y-auto flex-1 p-5">
-          <AddExpense onSuccess={onClose} />
+          <AddExpense onSuccess={onClose} asModal />
         </div>
       </div>
     </div>

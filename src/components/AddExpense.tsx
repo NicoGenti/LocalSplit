@@ -6,9 +6,10 @@ import { toast } from 'react-hot-toast';
 
 interface AddExpenseProps {
   onSuccess?: () => void;
+  asModal?: boolean;
 }
 
-export function AddExpense({ onSuccess }: AddExpenseProps = {}) {
+export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
   const { users, addExpense } = useGroupStore();
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -87,14 +88,8 @@ export function AddExpense({ onSuccess }: AddExpenseProps = {}) {
 
   if (users.length === 0) return null;
 
-  return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
-        <Receipt size={20} />
-        Aggiungi Spesa
-      </h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
+  const formContent = (
+    <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Titolo</label>
           <input
@@ -257,6 +252,19 @@ export function AddExpense({ onSuccess }: AddExpenseProps = {}) {
           Salva Spesa
         </button>
       </form>
+  );
+
+  if (asModal) {
+    return formContent;
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
+        <Receipt size={20} />
+        Aggiungi Spesa
+      </h2>
+      {formContent}
     </div>
   );
 }
