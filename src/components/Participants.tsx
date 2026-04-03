@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { useGroupStore } from '../store/useGroupStore';
-import { UserPlus, Trash2 } from 'lucide-react';
+import { UserPlus, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+
+const PAGE_SIZE = 5;
 
 export function Participants() {
   const { users, addUser, removeUser } = useGroupStore();
   const [newName, setNewName] = useState('');
   const [deletingUser, setDeletingUser] = useState<{ id: string; name: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,10 +27,22 @@ export function Participants() {
     toast.success(`${name} rimosso dal gruppo`);
   };
 
+  const filtered = users.filter(u =>
+    u.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginated = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+
+  const handleSearch = (q: string) => {
+    setSearchQuery(q);
+    setPage(0);
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
       <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Partecipanti</h2>
-      
+
       <form onSubmit={handleAdd} className="flex gap-2 mb-4">
         <input
           type="text"
@@ -47,8 +63,21 @@ export function Participants() {
         </button>
       </form>
 
+      {users.length > 0 && (
+        <div className="relative mb-3">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Cerca partecipante..."
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+          />
+        </div>
+      )}
+
       <ul className="space-y-2">
-        {users.map(user => (
+        {paginated.map(user => (
           <li key={user.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
             <span className="font-medium text-gray-700 dark:text-gray-200">{user.name}</span>
             <button
@@ -61,10 +90,38 @@ export function Participants() {
             </button>
           </li>
         ))}
+        {filtered.length === 0 && users.length > 0 && (
+          <li className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">Nessun risultato per "{searchQuery}"</li>
+        )}
         {users.length === 0 && (
           <li className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">Nessun partecipante. Aggiungine uno!</li>
         )}
       </ul>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+          <button
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={safePage === 0}
+            className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronLeft size={16} />
+            Prec
+          </button>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {safePage + 1} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={safePage === totalPages - 1}
+            className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            Succ
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
+
       <ConfirmDeleteModal
         isOpen={deletingUser !== null}
         onConfirm={() => {
