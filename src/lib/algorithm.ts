@@ -6,28 +6,30 @@ import { Expense, Debt, User } from '../types';
  * Un saldo negativo significa che l'utente deve pagare (debitore).
  */
 export function calculateBalances(expenses: Expense[], users: User[]): Record<string, number> {
-  const balances: Record<string, number> = {};
-  
+  // Usiamo centesimi interi per evitare accumulo di errori floating-point
+  const centBalances: Record<string, number> = {};
+
   // Inizializza i saldi a 0 per tutti gli utenti
-  users.forEach(u => balances[u.id] = 0);
+  users.forEach(u => centBalances[u.id] = 0);
 
   expenses.forEach(expense => {
     // Il pagatore ha anticipato i soldi, quindi il suo saldo aumenta (credito)
-    if (balances[expense.payerId] !== undefined) {
-      balances[expense.payerId] += expense.amount;
+    if (centBalances[expense.payerId] !== undefined) {
+      centBalances[expense.payerId] += Math.round(expense.amount * 100);
     }
 
     // I partecipanti alla spesa vedono il loro saldo diminuire (debito)
     expense.splits.forEach(split => {
-      if (balances[split.userId] !== undefined) {
-        balances[split.userId] -= split.amount;
+      if (centBalances[split.userId] !== undefined) {
+        centBalances[split.userId] -= Math.round(split.amount * 100);
       }
     });
   });
 
-  // Arrotonda per evitare problemi di precisione in virgola mobile
-  Object.keys(balances).forEach(key => {
-    balances[key] = Math.round(balances[key] * 100) / 100;
+  // Converti i centesimi in euro per il valore finale
+  const balances: Record<string, number> = {};
+  Object.keys(centBalances).forEach(key => {
+    balances[key] = centBalances[key] / 100;
   });
 
   return balances;
@@ -62,10 +64,9 @@ export function simplifyDebts(balances: Record<string, number>): Debt[] {
     // L'importo da trasferire è il minimo tra il debito rimanente e il credito rimanente
     const amount = Math.min(debtor.amount, creditor.amount);
     
-    // Arrotondamento per eccesso ai 5 centesimi (es. 2.53 -> 2.55, 1.76 -> 1.80)
-    // Applicato solo alla transazione finale, mantenendo la precisione per i calcoli interni
+    // Arrotonda al centesimo più vicino per la visualizzazione
     const exactAmount = Number(amount.toFixed(2));
-    const roundedAmount = Math.ceil(exactAmount * 20) / 20;
+    const roundedAmount = exactAmount;
 
     if (exactAmount > 0) {
       debts.push({

@@ -24,7 +24,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
     if (!title || !amount || !payerId || selectedUsers.size === 0) return;
 
     const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount <= 0) return;
+    if (!Number.isFinite(numAmount) || numAmount <= 0) return;
 
     let splits: Split[] = [];
     
@@ -37,7 +37,8 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
     } else {
       let sum = 0;
       splits = Array.from(selectedUsers).map((userId: string) => {
-        const amt = parseFloat(customAmounts[userId]) || 0;
+        const parsed = parseFloat(customAmounts[userId]);
+        const amt = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
         sum += amt;
         return { userId, amount: amt };
       });
@@ -107,6 +108,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Es. Cena pizzeria"
+            maxLength={100}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
             required
           />
