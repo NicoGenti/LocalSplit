@@ -132,11 +132,11 @@ export function Balances() {
                 <div className="space-y-2">
                   {creditors.map(([userId, balance]) => (
                     <div key={userId} className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
-                      <div className="flex items-center gap-2">
-                        <Avatar name={getUserName(userId)} className="bg-green-500 w-6 h-6 text-xs" />
-                        <span className="font-medium text-gray-700 dark:text-gray-300">{getUserName(userId)}</span>
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Avatar name={getUserName(userId)} className="bg-green-500 w-6 h-6 text-xs shrink-0" />
+                        <span className="font-medium text-gray-700 dark:text-gray-300 truncate">{getUserName(userId)}</span>
                       </div>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold whitespace-nowrap bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold whitespace-nowrap bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 shrink-0">
                         +{balance.toFixed(2)} €
                       </span>
                     </div>
@@ -154,11 +154,11 @@ export function Balances() {
                 <div className="space-y-2">
                   {debtors.map(([userId, balance]) => (
                     <div key={userId} className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
-                      <div className="flex items-center gap-2">
-                        <Avatar name={getUserName(userId)} className="bg-red-500 w-6 h-6 text-xs" />
-                        <span className="font-medium text-gray-700 dark:text-gray-300">{getUserName(userId)}</span>
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Avatar name={getUserName(userId)} className="bg-red-500 w-6 h-6 text-xs shrink-0" />
+                        <span className="font-medium text-gray-700 dark:text-gray-300 truncate">{getUserName(userId)}</span>
                       </div>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold whitespace-nowrap bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold whitespace-nowrap bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 shrink-0">
                         {balance.toFixed(2)} €
                       </span>
                     </div>
