@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useGroupStore } from '../store/useGroupStore';
 import { History, Utensils, Bus, ShoppingBag, Receipt, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { EditExpenseModal } from './EditExpenseModal';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { Expense } from '../types';
 import { toast } from 'react-hot-toast';
 
@@ -9,6 +10,7 @@ export function ExpenseList() {
   const { expenses, users, removeExpense } = useGroupStore();
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -128,7 +130,7 @@ export function ExpenseList() {
                             Modifica
                           </button>
                           <button
-                            onClick={() => { handleRemove(expense.id); setOpenMenuId(null); }}
+                            onClick={() => { setDeletingExpenseId(expense.id); setOpenMenuId(null); }}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           >
                             <Trash2 size={15} />
@@ -164,11 +166,21 @@ export function ExpenseList() {
       </div>
 
       {editingExpense && (
-        <EditExpenseModal 
-          expense={editingExpense} 
-          onClose={() => setEditingExpenseId(null)} 
+        <EditExpenseModal
+          expense={editingExpense}
+          onClose={() => setEditingExpenseId(null)}
         />
       )}
+      <ConfirmDeleteModal
+        isOpen={deletingExpenseId !== null}
+        onConfirm={() => {
+          if (deletingExpenseId) {
+            handleRemove(deletingExpenseId);
+            setDeletingExpenseId(null);
+          }
+        }}
+        onCancel={() => setDeletingExpenseId(null)}
+      />
     </div>
   );
 }

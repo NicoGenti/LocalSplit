@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useGroupStore } from '../store/useGroupStore';
 import { UserPlus, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 export function Participants() {
   const { users, addUser, removeUser } = useGroupStore();
   const [newName, setNewName] = useState('');
+  const [deletingUser, setDeletingUser] = useState<{ id: string; name: string } | null>(null);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +51,7 @@ export function Participants() {
           <li key={user.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
             <span className="font-medium text-gray-700 dark:text-gray-200">{user.name}</span>
             <button
-              onClick={() => handleRemove(user.id, user.name)}
+              onClick={() => setDeletingUser({ id: user.id, name: user.name })}
               className="text-gray-400 hover:text-red-600 p-3.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
               title="Rimuovi"
               aria-label={`Rimuovi ${user.name}`}
@@ -62,6 +64,16 @@ export function Participants() {
           <li className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">Nessun partecipante. Aggiungine uno!</li>
         )}
       </ul>
+      <ConfirmDeleteModal
+        isOpen={deletingUser !== null}
+        onConfirm={() => {
+          if (deletingUser) {
+            handleRemove(deletingUser.id, deletingUser.name);
+            setDeletingUser(null);
+          }
+        }}
+        onCancel={() => setDeletingUser(null)}
+      />
     </div>
   );
 }
