@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useGroupStore } from './store/useGroupStore';
 import { Participants } from './components/Participants';
 import { Balances } from './components/Balances';
@@ -8,6 +8,12 @@ import { Edit2, Check, Moon, Sun, Wallet, Receipt, Users, Plus } from 'lucide-re
 import { Toaster, toast } from 'react-hot-toast';
 
 type Tab = 'riepilogo' | 'spese' | 'gruppo';
+
+const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
+  { id: 'riepilogo', label: 'Riepilogo', icon: <Wallet size={22} /> },
+  { id: 'spese',     label: 'Spese',     icon: <Receipt size={22} /> },
+  { id: 'gruppo',    label: 'Gruppo',    icon: <Users size={22} /> },
+];
 
 export default function App() {
   const store = useGroupStore();
@@ -44,11 +50,7 @@ export default function App() {
     setIsEditingName(false);
   };
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'riepilogo', label: 'Riepilogo', icon: <Wallet size={22} /> },
-    { id: 'spese',     label: 'Spese',     icon: <Receipt size={22} /> },
-    { id: 'gruppo',    label: 'Gruppo',    icon: <Users size={22} /> },
-  ];
+  const handleCloseModal = useCallback(() => setIsAddExpenseOpen(false), []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-200">
@@ -142,13 +144,13 @@ export default function App() {
       {/* ── Add Expense Modal ── */}
       <AddExpenseModal
         isOpen={isAddExpenseOpen}
-        onClose={() => setIsAddExpenseOpen(false)}
+        onClose={handleCloseModal}
       />
 
       {/* ── Bottom Navigation ── */}
       <nav className="fixed bottom-0 inset-x-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-10 transition-colors duration-200">
         <div className="max-w-xl mx-auto flex">
-          {tabs.map((tab) => {
+          {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
               <button

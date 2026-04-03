@@ -61,6 +61,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
 
     setTitle('');
     setAmount('');
+    setPayerId('');
     setCategory(undefined);
     setSelectedUsers(new Set());
     setCustomAmounts({});
@@ -86,7 +87,16 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
     }
   };
 
-  if (users.length === 0) return null;
+  if (users.length === 0) {
+    if (asModal) {
+      return (
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+          Aggiungi partecipanti nella tab <span className="font-semibold">Gruppo</span> prima di inserire una spesa.
+        </p>
+      );
+    }
+    return null;
+  }
 
   const formContent = (
     <form onSubmit={handleSubmit} className="space-y-4">
