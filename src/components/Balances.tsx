@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useGroupStore } from '../store/useGroupStore';
 import { calculateBalances, simplifyDebts } from '../lib/algorithm';
-import { ArrowRight, Wallet, TrendingUp, TrendingDown, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Wallet, TrendingUp, TrendingDown, CheckCircle2, Info, X } from 'lucide-react';
 import { Debt } from '../types';
 import { toast } from 'react-hot-toast';
 
@@ -13,6 +13,19 @@ const Avatar = ({ name, className }: { name: string, className?: string }) => (
 
 export function Balances() {
   const { users, expenses, addExpense } = useGroupStore();
+  const [showInfo, setShowInfo] = useState(false);
+  const infoRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showInfo) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (infoRef.current && !infoRef.current.contains(e.target as Node)) {
+        setShowInfo(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showInfo]);
 
   const { balances, debts } = useMemo(() => {
     const bals = calculateBalances(expenses, users);
@@ -71,10 +84,52 @@ export function Balances() {
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
-      <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white flex items-center gap-2">
-        <Wallet size={20} />
-        Chi deve a chi
-      </h2>
+      <div className="relative flex items-center gap-2 mb-6" ref={infoRef}>
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+          <Wallet size={20} />
+          Chi deve a chi
+        </h2>
+        <button
+          onClick={() => setShowInfo(v => !v)}
+          className="text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400 transition-colors flex-shrink-0"
+          aria-label="Come funziona il calcolo"
+        >
+          <Info size={18} />
+        </button>
+
+        {showInfo && (
+          <div className="absolute z-20 top-full mt-2 left-0 w-80 bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-900 rounded-xl shadow-lg p-4 text-sm text-gray-700 dark:text-gray-300">
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <span className="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                <Info size={15} />
+                Algoritmo semplificato
+              </span>
+              <button onClick={() => setShowInfo(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <X size={15} />
+              </button>
+            </div>
+            <ol className="space-y-2 list-none">
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center justify-center">1</span>
+                <span>Viene calcolato il <strong>saldo netto</strong> di ogni persona: quanto ha pagato meno la sua quota delle spese.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center justify-center">2</span>
+                <span>I partecipanti vengono divisi in <strong>creditori</strong> (saldo positivo) e <strong>debitori</strong> (saldo negativo).</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center justify-center">3</span>
+                <span>Un algoritmo <strong>greedy</strong> abbina il debitore più grande con il creditore più grande, trasferendo l'importo minimo tra i due.</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center justify-center">4</span>
+                <span>Il processo si ripete fino ad azzerare tutti i saldi, ottenendo il <strong>minor numero possibile di bonifici</strong>.</span>
+              </li>
+            </ol>
+            <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">Gli importi sono arrotondati ai 5 centesimi più vicini per semplicità.</p>
+          </div>
+        )}
+      </div>
 
       {debts.length === 0 ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
