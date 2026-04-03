@@ -42,11 +42,22 @@ export const useGroupStore = create<GroupStore>()(
       removeExpense: (id) => set((state) => ({
         expenses: state.expenses.filter(e => e.id !== id)
       })),
-      importState: (newState) => set(newState),
+      importState: (newState) => {
+        if (
+          typeof newState === 'object' &&
+          newState !== null &&
+          typeof newState.name === 'string' &&
+          Array.isArray(newState.users) &&
+          Array.isArray(newState.expenses)
+        ) {
+          set(newState);
+        }
+      },
       reset: () => set({ name: 'Nuovo Gruppo', users: [], expenses: [] })
     }),
     {
       name: 'split-app-storage',
+      version: 1,
     }
   )
 );

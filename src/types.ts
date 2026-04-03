@@ -26,7 +26,7 @@ export interface Expense {
 export interface Debt {
   from: string;
   to: string;
-  amount: number;       // importo arrotondato ai 5 centesimi (solo per visualizzazione)
+  amount: number;       // importo arrotondato al centesimo (solo per visualizzazione)
   exactAmount: number;  // importo esatto per azzerare il saldo (usato dal bottone Salda)
 }
 
