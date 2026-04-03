@@ -4,7 +4,11 @@ import { SplitType, Split, ExpenseCategory } from '../types';
 import { Receipt, Check, Utensils, Bus, ShoppingBag } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-export function AddExpense() {
+interface AddExpenseProps {
+  onSuccess?: () => void;
+}
+
+export function AddExpense({ onSuccess }: AddExpenseProps = {}) {
   const { users, addExpense } = useGroupStore();
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -60,6 +64,7 @@ export function AddExpense() {
     setSelectedUsers(new Set());
     setCustomAmounts({});
     setSplitType('EQUAL');
+    onSuccess?.();
   };
 
   const toggleUser = (userId: string) => {
