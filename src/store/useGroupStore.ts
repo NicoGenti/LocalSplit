@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, Expense, GroupState } from '../types';
+import { User, Expense, Split, GroupState } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface GroupStore extends GroupState {
@@ -24,13 +24,40 @@ export const useGroupStore = create<GroupStore>()(
       addUser: (name) => set((state) => ({ 
         users: [...state.users, { id: uuidv4(), name }] 
       })),
-      removeUser: (id) => set((state) => ({
-        users: state.users.filter(u => u.id !== id),
-        // Rimuoviamo anche le spese in cui l'utente era coinvolto per mantenere la consistenza
-        expenses: state.expenses.filter(e => 
-          e.payerId !== id && !e.splits.some(s => s.userId === id)
-        )
-      })),
+      removeUser: (id) => set((state) => {
+        const updatedExpenses = state.expenses
+          .map((expense) => {
+            const isInSplits = expense.splits.some((s) => s.userId === id);
+            const isPayer = expense.payerId === id;
+
+            if (!isInSplits && !isPayer) return expense;
+
+            const removedSplit = expense.splits.find((s) => s.userId === id);
+            const remainingSplits = expense.splits.filter((s) => s.userId !== id);
+
+            if (remainingSplits.length === 0) return null;
+
+            let newSplits: Split[];
+            if (expense.splitType === 'EQUAL') {
+              const perPerson = expense.amount / remainingSplits.length;
+              newSplits = remainingSplits.map((s) => ({ ...s, amount: perPerson }));
+            } else {
+              const removedAmount = removedSplit?.amount ?? 0;
+              const bonus = removedAmount / remainingSplits.length;
+              newSplits = remainingSplits.map((s) => ({ ...s, amount: s.amount + bonus }));
+            }
+
+            const newPayerId = isPayer ? remainingSplits[0].userId : expense.payerId;
+
+            return { ...expense, payerId: newPayerId, splits: newSplits };
+          })
+          .filter((e): e is Expense => e !== null);
+
+        return {
+          users: state.users.filter((u) => u.id !== id),
+          expenses: updatedExpenses,
+        };
+      }),
       addExpense: (expense) => set((state) => ({
         expenses: [...state.expenses, { ...expense, id: uuidv4(), date: new Date().toISOString() }]
       })),
