@@ -49,7 +49,7 @@ export function Participants() {
             <span className="font-medium text-gray-700 dark:text-gray-200">{user.name}</span>
             <button
               onClick={() => handleRemove(user.id, user.name)}
-              className="text-gray-400 hover:text-red-600 p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+              className="text-gray-400 hover:text-red-600 p-3.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
               title="Rimuovi"
               aria-label={`Rimuovi ${user.name}`}
             >
