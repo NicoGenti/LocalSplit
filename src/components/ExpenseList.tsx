@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGroupStore } from '../store/useGroupStore';
-import { Trash2, History, Edit2, Utensils, Bus, ShoppingBag, Receipt } from 'lucide-react';
+import { History, Utensils, Bus, ShoppingBag, Receipt, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { EditExpenseModal } from './EditExpenseModal';
 import { Expense } from '../types';
 import { toast } from 'react-hot-toast';
@@ -8,6 +8,20 @@ import { toast } from 'react-hot-toast';
 export function ExpenseList() {
   const { expenses, users, removeExpense } = useGroupStore();
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-menu-id]')) {
+        setOpenMenuId(null);
+      }
+    };
+    if (openMenuId) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenuId]);
 
   const getUserName = (id: string) => users.find(u => u.id === id)?.name || 'Sconosciuto';
 
@@ -72,67 +86,74 @@ export function ExpenseList() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
       <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white flex items-center gap-2">
         <History size={20} />
         Storico Spese
       </h2>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {Object.entries(groupedExpenses).map(([dateStr, dayExpenses]) => (
           <div key={dateStr}>
             <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pl-1">{dateStr}</h3>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {dayExpenses.map(expense => (
-                <div key={expense.id} className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500 transition-colors">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-gray-800 dark:text-gray-200">{expense.title}</h4>
-                      {expense.category && (
-                        <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${getCategoryBadgeClass(expense.category)}`}>
-                          {getCategoryIcon(expense.category)}
-                          {expense.category}
-                        </span>
+                <div key={expense.id} className="relative p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500 transition-colors">
+                  {/* Riga 1: titolo + badge + importo + menu */}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <h4 className="font-medium text-gray-800 dark:text-gray-200 truncate">{expense.title}</h4>
+                    {expense.category && (
+                      <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider shrink-0 ${getCategoryBadgeClass(expense.category)}`}>
+                        {getCategoryIcon(expense.category)}
+                        {expense.category}
+                      </span>
+                    )}
+                    <span className="ml-auto font-bold text-gray-800 dark:text-white text-base shrink-0">€{expense.amount.toFixed(2)}</span>
+                    {/* Menu contestuale */}
+                    <div className="relative shrink-0" data-menu-id={expense.id}>
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === expense.id ? null : expense.id)}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                        aria-label="Azioni spesa"
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+                      {openMenuId === expense.id && (
+                        <div className="absolute right-0 top-7 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg py-1 min-w-[140px]">
+                          <button
+                            onClick={() => { setEditingExpenseId(expense.id); setOpenMenuId(null); }}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <Edit2 size={15} />
+                            Modifica
+                          </button>
+                          <button
+                            onClick={() => { handleRemove(expense.id); setOpenMenuId(null); }}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          >
+                            <Trash2 size={15} />
+                            Elimina
+                          </button>
+                        </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-3">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Pagato da <span className="font-medium text-gray-700 dark:text-gray-300">{getUserName(expense.payerId)}</span>
-                      </p>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
-                        <span>•</span>
-                        <span>Per:</span>
-                        <div className="flex -space-x-1.5">
-                          {expense.splits.map(split => (
-                            <div 
-                              key={split.userId} 
-                              className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-600 border border-white dark:border-gray-800 flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-gray-300 shadow-sm transition-colors" 
-                              title={getUserName(split.userId)}
-                            >
-                              {getUserName(split.userId).charAt(0).toUpperCase()}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                  <div className="flex items-center gap-3 pl-4">
-                    <span className="font-bold text-gray-800 dark:text-white text-lg">€{expense.amount.toFixed(2)}</span>
-                    <div className="flex items-center gap-2 border-l border-gray-200 dark:border-gray-600 pl-3 transition-colors">
-                      <button
-                        onClick={() => setEditingExpenseId(expense.id)}
-                        className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
-                        title="Modifica spesa"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleRemove(expense.id)}
-                        className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
-                        title="Elimina spesa"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                  {/* Riga 2: pagato da + per chi */}
+                  <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    <span>Pagato da</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-300 truncate max-w-[80px]">{getUserName(expense.payerId)}</span>
+                    <span className="shrink-0">•</span>
+                    <span className="shrink-0">Per:</span>
+                    <div className="flex -space-x-1.5 shrink-0">
+                      {expense.splits.map(split => (
+                        <div
+                          key={split.userId}
+                          className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-600 border border-white dark:border-gray-800 flex items-center justify-center text-[9px] font-bold text-gray-600 dark:text-gray-300 shadow-sm transition-colors"
+                          title={getUserName(split.userId)}
+                        >
+                          {getUserName(split.userId).charAt(0).toUpperCase()}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
