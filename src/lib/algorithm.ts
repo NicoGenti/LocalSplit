@@ -67,11 +67,12 @@ export function simplifyDebts(balances: Record<string, number>): Debt[] {
     const exactAmount = Number(amount.toFixed(2));
     const roundedAmount = Math.ceil(exactAmount * 20) / 20;
 
-    if (roundedAmount > 0) {
+    if (exactAmount > 0) {
       debts.push({
         from: debtor.id,
         to: creditor.id,
-        amount: roundedAmount
+        amount: roundedAmount,
+        exactAmount: exactAmount
       });
     }
 

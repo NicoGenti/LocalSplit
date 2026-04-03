@@ -26,10 +26,10 @@ export function Balances() {
     if (window.confirm(`Confermi che ${getUserName(debt.from)} ha pagato €${debt.amount.toFixed(2)} a ${getUserName(debt.to)}?`)) {
       addExpense({
         title: 'Saldo debito',
-        amount: debt.amount,
+        amount: debt.exactAmount,
         payerId: debt.from,
         splitType: 'CUSTOM',
-        splits: [{ userId: debt.to, amount: debt.amount }]
+        splits: [{ userId: debt.to, amount: debt.exactAmount }]
       });
       toast.success('Debito saldato con successo!');
     }
@@ -86,15 +86,15 @@ export function Balances() {
             <div key={idx} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
               {/* Riga 1: da → a */}
               <div className="flex items-center gap-2 flex-wrap min-w-0 mb-3">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Avatar name={getUserName(debt.from)} className="bg-red-500" />
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Avatar name={getUserName(debt.from)} className="bg-red-500 shrink-0" />
                   <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.from)}>
                     {getUserName(debt.from)}
                   </span>
                 </div>
                 <ArrowRight size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
-                <div className="flex items-center gap-2 min-w-0">
-                  <Avatar name={getUserName(debt.to)} className="bg-green-500" />
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Avatar name={getUserName(debt.to)} className="bg-green-500 shrink-0" />
                   <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.to)}>
                     {getUserName(debt.to)}
                   </span>
