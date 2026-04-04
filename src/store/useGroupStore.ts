@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 interface GroupStore extends GroupState {
   setName: (name: string) => void;
   addUser: (name: string) => void;
+  updateUser: (id: string, name: string) => void;
   removeUser: (id: string) => void;
   addExpense: (expense: Omit<Expense, 'id' | 'date'>) => void;
   updateExpense: (id: string, expense: Omit<Expense, 'id' | 'date'>) => void;
@@ -21,8 +22,11 @@ export const useGroupStore = create<GroupStore>()(
       users: [],
       expenses: [],
       setName: (name) => set({ name }),
-      addUser: (name) => set((state) => ({ 
-        users: [...state.users, { id: uuidv4(), name }] 
+      addUser: (name) => set((state) => ({
+        users: [...state.users, { id: uuidv4(), name }]
+      })),
+      updateUser: (id, name) => set((state) => ({
+        users: state.users.map((u) => u.id === id ? { ...u, name } : u)
       })),
       removeUser: (id) => set((state) => {
         const updatedExpenses = state.expenses
