@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useGroupStore } from '../store/useGroupStore';
 import { UserPlus, Trash2, Search, ChevronLeft, ChevronRight, Pencil, Check, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -15,14 +15,18 @@ export function Participants() {
   const [editingUser, setEditingUser] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
+  const addInputRef = useRef<HTMLInputElement>(null);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newName.trim()) {
-      addUser(newName.trim());
-      toast.success(t('participants.added', { name: newName.trim() }));
-      setNewName('');
+    if (!newName.trim()) return;
+    if (users.some(u => u.name.toLowerCase() === newName.trim().toLowerCase())) {
+      toast.error(t('participants.duplicateName', { name: newName.trim() }));
+      return;
     }
+    addUser(newName.trim());
+    toast.success(t('participants.added', { name: newName.trim() }));
+    setNewName('');
   };
 
   const handleRemove = (id: string, name: string) => {
@@ -54,6 +58,7 @@ export function Participants() {
 
       <form onSubmit={handleAdd} className="flex gap-2 mb-4">
         <input
+          ref={addInputRef}
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
@@ -153,7 +158,17 @@ export function Participants() {
           <li className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">{t('participants.noResults', { query: searchQuery })}</li>
         )}
         {users.length === 0 && (
-          <li className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">{t('participants.empty')}</li>
+          <li className="text-center py-6 flex flex-col items-center gap-3">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">{t('participants.empty')}</p>
+            <button
+              type="button"
+              onClick={() => addInputRef.current?.focus()}
+              className="flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            >
+              <UserPlus size={15} />
+              {t('participants.add')}
+            </button>
+          </li>
         )}
       </ul>
 

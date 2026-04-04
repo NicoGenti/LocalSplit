@@ -150,16 +150,14 @@ export default function App() {
         {activeTab === 'group'    && <Participants />}
       </main>
 
-      {/* ── FAB (only on Expenses tab) ── */}
-      {activeTab === 'expenses' && (
-        <button
-          onClick={() => setIsAddExpenseOpen(true)}
-          className="fixed bottom-20 right-4 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center z-20 transition-colors"
-          aria-label={t('header.addExpense')}
-        >
-          <Plus size={26} />
-        </button>
-      )}
+      {/* ── FAB (visible in all tabs) ── */}
+      <button
+        onClick={() => setIsAddExpenseOpen(true)}
+        className="fixed bottom-20 right-4 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center z-20 transition-colors"
+        aria-label={t('header.addExpense')}
+      >
+        <Plus size={26} />
+      </button>
 
       {/* ── Add Expense Modal ── */}
       <AddExpenseModal
@@ -172,18 +170,29 @@ export default function App() {
         <div className="max-w-xl mx-auto flex">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
+            const showBadge = tab.id === 'expenses' && store.expenses.length > 0;
+            const badgeLabel = store.expenses.length > 99 ? '99+' : String(store.expenses.length);
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 transition-colors ${
+                className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 transition-colors border-t-2 ${
                   isActive
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                    ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50/60 dark:bg-blue-900/20'
+                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border-transparent'
                 }`}
                 aria-label={t(tab.labelKey)}
               >
-                {tab.icon}
+                <div className="relative">
+                  <span className={`transition-transform duration-150 inline-flex ${isActive ? 'scale-110' : 'scale-100'}`}>
+                    {tab.icon}
+                  </span>
+                  {showBadge && (
+                    <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 px-1 bg-blue-600 dark:bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                      {badgeLabel}
+                    </span>
+                  )}
+                </div>
                 <span className="text-[11px] font-medium">{t(tab.labelKey)}</span>
               </button>
             );
