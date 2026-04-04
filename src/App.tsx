@@ -150,14 +150,16 @@ export default function App() {
         {activeTab === 'group'    && <Participants />}
       </main>
 
-      {/* ── FAB (visible in all tabs) ── */}
-      <button
-        onClick={() => setIsAddExpenseOpen(true)}
-        className="fixed bottom-20 right-4 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center z-20 transition-colors"
-        aria-label={t('header.addExpense')}
-      >
-        <Plus size={26} />
-      </button>
+      {/* ── FAB (hidden in group tab to avoid overlapping pagination) ── */}
+      {activeTab !== 'group' && (
+        <button
+          onClick={() => setIsAddExpenseOpen(true)}
+          className="fixed bottom-20 right-4 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center z-20 transition-colors"
+          aria-label={t('header.addExpense')}
+        >
+          <Plus size={26} />
+        </button>
+      )}
 
       {/* ── Add Expense Modal ── */}
       <AddExpenseModal
