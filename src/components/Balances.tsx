@@ -5,6 +5,7 @@ import { ArrowRight, Wallet, TrendingUp, TrendingDown, CheckCircle2, Info, X, Se
 import { Debt } from '../types';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from '../i18n/index';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 const PAGE_SIZE = 5;
 
@@ -65,6 +66,7 @@ export function Balances() {
   const { users, expenses, addExpense } = useGroupStore();
   const { t } = useTranslation();
   const [showInfo, setShowInfo] = useState(false);
+  const [settlingDebt, setSettlingDebt] = useState<Debt | null>(null);
   const infoRef = useRef<HTMLDivElement>(null);
 
   // Search + pagination state for each section
@@ -102,20 +104,20 @@ export function Balances() {
   }, [expenses, users]);
 
   const handleSettle = (debt: Debt) => {
-    if (window.confirm(t('balances.settleConfirm', {
-      from: getUserName(debt.from),
-      amount: debt.amount.toFixed(2),
-      to: getUserName(debt.to),
-    }))) {
-      addExpense({
-        title: t('balances.settleExpenseTitle'),
-        amount: debt.exactAmount,
-        payerId: debt.from,
-        splitType: 'CUSTOM',
-        splits: [{ userId: debt.to, amount: debt.exactAmount }]
-      });
-      toast.success(t('balances.settleSuccess'));
-    }
+    setSettlingDebt(debt);
+  };
+
+  const confirmSettle = () => {
+    if (!settlingDebt) return;
+    addExpense({
+      title: t('balances.settleExpenseTitle'),
+      amount: settlingDebt.exactAmount,
+      payerId: settlingDebt.from,
+      splitType: 'CUSTOM',
+      splits: [{ userId: settlingDebt.to, amount: settlingDebt.exactAmount }]
+    });
+    toast.success(t('balances.settleSuccess'));
+    setSettlingDebt(null);
   };
 
   // Filtered + paginated debts
@@ -367,6 +369,19 @@ export function Balances() {
           </div>
         </div>
       )}
+
+      <ConfirmDeleteModal
+        isOpen={settlingDebt !== null}
+        onConfirm={confirmSettle}
+        onCancel={() => setSettlingDebt(null)}
+        message={settlingDebt ? t('balances.settleConfirm', {
+          from: getUserName(settlingDebt.from),
+          amount: settlingDebt.amount.toFixed(2),
+          to: getUserName(settlingDebt.to),
+        }) : undefined}
+        confirmLabel={t('balances.settle')}
+        variant="confirm"
+      />
     </div>
   );
 }

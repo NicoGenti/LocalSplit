@@ -8,24 +8,27 @@ import { useTranslation } from '../i18n/index';
 interface AddExpenseProps {
   onSuccess?: () => void;
   asModal?: boolean;
+  formId?: string;
 }
 
-export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
+export function AddExpense({ onSuccess, asModal, formId }: AddExpenseProps = {}) {
   const { users, addExpense } = useGroupStore();
   const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
-  const [payerId, setPayerId] = useState('');
+  const [payerId, setPayerId] = useState(() => users[0]?.id ?? '');
   const [category, setCategory] = useState<ExpenseCategory | undefined>(undefined);
   const [splitType, setSplitType] = useState<SplitType>('EQUAL');
-  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(
+    () => new Set(users.map(u => u.id))
+  );
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !amount || !payerId || selectedUsers.size === 0) return;
 
-    const numAmount = parseFloat(amount);
+    const numAmount = parseFloat(amount.replace(',', '.'));
     if (!Number.isFinite(numAmount) || numAmount <= 0) return;
 
     let splits: Split[] = [];
@@ -39,7 +42,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
     } else {
       let sum = 0;
       splits = Array.from(selectedUsers).map((userId: string) => {
-        const parsed = parseFloat(customAmounts[userId]);
+        const parsed = parseFloat((customAmounts[userId] ?? '').replace(',', '.'));
         const amt = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
         sum += amt;
         return { userId, amount: amt };
@@ -64,9 +67,9 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
 
     setTitle('');
     setAmount('');
-    setPayerId('');
+    setPayerId(users[0]?.id ?? '');
     setCategory(undefined);
-    setSelectedUsers(new Set());
+    setSelectedUsers(new Set(users.map(u => u.id)));
     setCustomAmounts({});
     setSplitType('EQUAL');
     onSuccess?.();
@@ -90,6 +93,22 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
     }
   };
 
+  const numAmount = parseFloat(amount.replace(',', '.'));
+  const validAmount = Number.isFinite(numAmount) && numAmount > 0;
+
+  const perPersonAmount = validAmount && selectedUsers.size > 0 && splitType === 'EQUAL'
+    ? numAmount / selectedUsers.size
+    : null;
+
+  const customSum = splitType === 'CUSTOM' && selectedUsers.size > 0
+    ? Array.from(selectedUsers).reduce((sum, userId) => {
+        const parsed = parseFloat((customAmounts[userId] ?? '').replace(',', '.'));
+        return sum + (Number.isFinite(parsed) && parsed >= 0 ? parsed : 0);
+      }, 0)
+    : null;
+
+  const customSumOk = customSum !== null && validAmount && Math.abs(customSum - numAmount) <= 0.01;
+
   if (users.length === 0) {
     if (asModal) {
       return (
@@ -101,8 +120,10 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
     return null;
   }
 
+  const isSubmitDisabled = !title || !amount || !payerId || selectedUsers.size === 0;
+
   const formContent = (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id={formId} onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{t('expense.title')}</label>
           <input
@@ -120,9 +141,9 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
           <div className="flex-1">
             <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{t('expense.amount')}</label>
             <input
-              type="number"
-              step="0.01"
-              min="0.01"
+              type="text"
+              inputMode="decimal"
+              pattern="[0-9]*[.,]?[0-9]*"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
@@ -221,8 +242,8 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
                   type="button"
                   onClick={() => toggleUser(u.id)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all flex items-center gap-1.5 ${
-                    isSelected 
-                      ? 'bg-blue-600 border-blue-600 text-white shadow-sm' 
+                    isSelected
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
                       : 'bg-white dark:bg-gray-700 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 opacity-70 hover:opacity-100 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
@@ -233,18 +254,31 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
             })}
           </div>
 
+          {perPersonAmount !== null && (
+            <p className="mt-2 text-sm text-blue-600 dark:text-blue-400 font-medium">
+              {t('expense.perPersonAmount', { amount: perPersonAmount.toFixed(2) })}
+            </p>
+          )}
+
           {splitType === 'CUSTOM' && selectedUsers.size > 0 && (
             <div className="mt-5 space-y-3 border-t border-gray-100 dark:border-gray-700 pt-5">
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">{t('expense.exactAmounts')}</label>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('expense.exactAmounts')}</label>
+                {customSum !== null && validAmount && (
+                  <span className={`text-xs font-semibold ${customSumOk ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                    €{customSum.toFixed(2)} / €{numAmount.toFixed(2)}
+                  </span>
+                )}
+              </div>
               {Array.from(selectedUsers).map((userId: string) => (
                 <div key={userId} className="flex items-center justify-between gap-4">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{users.find(u => u.id === userId)?.name}</span>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">€</span>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type="text"
+                      inputMode="decimal"
+                      pattern="[0-9]*[.,]?[0-9]*"
                       value={customAmounts[userId] || ''}
                       onChange={(e) => setCustomAmounts(prev => ({ ...prev, [userId]: e.target.value }))}
                       className="w-28 pl-8 pr-3 py-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
@@ -258,13 +292,15 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
           )}
         </div>
 
-        <button
-          type="submit"
-          disabled={!title || !amount || !payerId || selectedUsers.size === 0}
-          className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:text-gray-400 dark:disabled:text-gray-500 disabled:cursor-not-allowed mt-6 transition-all"
-        >
-          {t('expense.save')}
-        </button>
+        <div className={asModal ? 'sticky bottom-0 -mx-5 px-5 pt-3 pb-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 mt-6' : 'mt-6'}>
+          <button
+            type="submit"
+            disabled={isSubmitDisabled}
+            className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:text-gray-400 dark:disabled:text-gray-500 disabled:cursor-not-allowed transition-all"
+          >
+            {t('expense.save')}
+          </button>
+        </div>
       </form>
   );
 
