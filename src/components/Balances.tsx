@@ -181,7 +181,7 @@ export function Balances() {
       <div className="relative flex items-center gap-2 mb-4" ref={infoRef}>
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center gap-2">
           <Wallet size={20} />
-          {t('balances.title')}
+          {t('balances.netBalances')}
         </h2>
         <button
           onClick={() => setShowInfo(v => !v)}
@@ -225,70 +225,8 @@ export function Balances() {
         )}
       </div>
 
-      {debts.length === 0 ? (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          <p>{t('balances.allSettled')}</p>
-        </div>
-      ) : (
-        <>
-          <SearchInput
-            value={debtsSearch}
-            onChange={(q) => { setDebtsSearch(q); setDebtsPage(0); }}
-            placeholder={t('balances.searchPlaceholder')}
-          />
-          <div className="space-y-4">
-            {paginatedDebts.map((debt) => (
-              <div key={`${debt.from}-${debt.to}`} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
-                {/* Riga 1: da → a */}
-                <div className="flex items-center gap-2 flex-wrap min-w-0 mb-3">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <Avatar name={getUserName(debt.from)} className="bg-red-500 shrink-0" />
-                    <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.from)}>
-                      {getUserName(debt.from)}
-                    </span>
-                  </div>
-                  <ArrowRight size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <Avatar name={getUserName(debt.to)} className="bg-green-500 shrink-0" />
-                    <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.to)}>
-                      {getUserName(debt.to)}
-                    </span>
-                  </div>
-                </div>
-                {/* Riga 2: importo + bottone Salda */}
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-gray-800 dark:text-white text-lg">
-                    €{debt.amount.toFixed(2)}
-                  </span>
-                  <button
-                    onClick={() => handleSettle(debt)}
-                    className="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-lg font-medium hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors text-sm"
-                  >
-                    <CheckCircle2 size={16} />
-                    {t('balances.settle')}
-                  </button>
-                </div>
-              </div>
-            ))}
-            {filteredDebts.length === 0 && (
-              <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
-                {t('balances.noResults', { query: debtsSearch })}
-              </p>
-            )}
-          </div>
-          <Pagination
-            page={safeDebtsPage}
-            totalPages={debtsTotalPages}
-            onPrev={() => setDebtsPage(p => Math.max(0, p - 1))}
-            onNext={() => setDebtsPage(p => Math.min(debtsTotalPages - 1, p + 1))}
-            prevLabel={t('pagination.prev')}
-            nextLabel={t('pagination.next')}
-          />
-        </>
-      )}
-
       {(creditors.length > 0 || debtors.length > 0) && (
-        <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
+        <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">{t('balances.netBalances')}</h3>
 
           <div className="space-y-6">
@@ -382,6 +320,74 @@ export function Balances() {
           </div>
         </div>
       )}
+
+      <div className="pt-6 border-t border-gray-100 dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+          <ArrowRight size={18} />
+          {t('balances.title')}
+        </h3>
+        {debts.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <p>{t('balances.allSettled')}</p>
+          </div>
+        ) : (
+          <>
+            <SearchInput
+              value={debtsSearch}
+              onChange={(q) => { setDebtsSearch(q); setDebtsPage(0); }}
+              placeholder={t('balances.searchPlaceholder')}
+            />
+            <div className="space-y-4">
+              {paginatedDebts.map((debt) => (
+                <div key={`${debt.from}-${debt.to}`} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
+                  {/* Riga 1: da → a */}
+                  <div className="flex items-center gap-2 flex-wrap min-w-0 mb-3">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <Avatar name={getUserName(debt.from)} className="bg-red-500 shrink-0" />
+                      <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.from)}>
+                        {getUserName(debt.from)}
+                      </span>
+                    </div>
+                    <ArrowRight size={16} className="text-gray-400 dark:text-gray-500 shrink-0" />
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <Avatar name={getUserName(debt.to)} className="bg-green-500 shrink-0" />
+                      <span className="font-medium text-gray-800 dark:text-gray-200 truncate" title={getUserName(debt.to)}>
+                        {getUserName(debt.to)}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Riga 2: importo + bottone Salda */}
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-gray-800 dark:text-white text-lg">
+                      €{debt.amount.toFixed(2)}
+                    </span>
+                    <button
+                      onClick={() => handleSettle(debt)}
+                      className="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-lg font-medium hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors text-sm"
+                    >
+                      <CheckCircle2 size={16} />
+                      {t('balances.settle')}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {filteredDebts.length === 0 && (
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+                  {t('balances.noResults', { query: debtsSearch })}
+                </p>
+              )}
+            </div>
+            <Pagination
+              page={safeDebtsPage}
+              totalPages={debtsTotalPages}
+              onPrev={() => setDebtsPage(p => Math.max(0, p - 1))}
+              onNext={() => setDebtsPage(p => Math.min(debtsTotalPages - 1, p + 1))}
+              prevLabel={t('pagination.prev')}
+              nextLabel={t('pagination.next')}
+            />
+          </>
+        )}
+      </div>
 
       <ConfirmDeleteModal
         isOpen={settlingDebt !== null}
