@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Trash2 } from 'lucide-react';
+import { useTranslation } from '../i18n/index';
 
 interface ConfirmDeleteModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface ConfirmDeleteModalProps {
 
 export function ConfirmDeleteModal({ isOpen, onConfirm, onCancel }: ConfirmDeleteModalProps) {
   const noButtonRef = useRef<HTMLButtonElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isOpen) noButtonRef.current?.focus();
@@ -37,7 +39,7 @@ export function ConfirmDeleteModal({ isOpen, onConfirm, onCancel }: ConfirmDelet
             <Trash2 size={22} className="text-red-600 dark:text-red-400" />
           </div>
           <h2 id="confirm-delete-title" className="text-lg font-semibold text-gray-800 dark:text-white">
-            Sei sicuro di voler eliminare?
+            {t('confirmDelete.title')}
           </h2>
         </div>
         <div className="flex gap-3">
@@ -46,13 +48,13 @@ export function ConfirmDeleteModal({ isOpen, onConfirm, onCancel }: ConfirmDelet
             onClick={onCancel}
             className="flex-1 bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 px-4 py-3 rounded-lg font-bold hover:bg-gray-700 dark:hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
           >
-            No
+            {t('confirmDelete.no')}
           </button>
           <button
             onClick={onConfirm}
             className="flex-1 border border-red-300 dark:border-red-700 text-red-500 dark:text-red-400 px-4 py-3 rounded-lg font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus:outline-none focus:ring-2 focus:ring-red-300"
           >
-            Sì
+            {t('confirmDelete.yes')}
           </button>
         </div>
       </div>

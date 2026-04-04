@@ -3,11 +3,13 @@ import { useGroupStore } from '../store/useGroupStore';
 import { UserPlus, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { useTranslation } from '../i18n/index';
 
 const PAGE_SIZE = 5;
 
 export function Participants() {
   const { users, addUser, removeUser } = useGroupStore();
+  const { t } = useTranslation();
   const [newName, setNewName] = useState('');
   const [deletingUser, setDeletingUser] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,14 +19,14 @@ export function Participants() {
     e.preventDefault();
     if (newName.trim()) {
       addUser(newName.trim());
-      toast.success(`${newName.trim()} aggiunto al gruppo`);
+      toast.success(t('participants.added', { name: newName.trim() }));
       setNewName('');
     }
   };
 
   const handleRemove = (id: string, name: string) => {
     removeUser(id);
-    toast.success(`${name} rimosso dal gruppo`);
+    toast.success(t('participants.removed', { name }));
   };
 
   const filtered = users.filter(u =>
@@ -41,14 +43,14 @@ export function Participants() {
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Partecipanti</h2>
+      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">{t('participants.title')}</h2>
 
       <form onSubmit={handleAdd} className="flex gap-2 mb-4">
         <input
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          placeholder="Nome partecipante..."
+          placeholder={t('participants.placeholder')}
           maxLength={50}
           className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
         />
@@ -56,10 +58,10 @@ export function Participants() {
           type="submit"
           disabled={!newName.trim()}
           className="bg-blue-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 transition-colors shrink-0"
-          aria-label="Aggiungi partecipante"
+          aria-label={t('participants.add')}
         >
           <UserPlus size={18} />
-          <span className="hidden sm:inline">Aggiungi</span>
+          <span className="hidden sm:inline">{t('participants.add')}</span>
         </button>
       </form>
 
@@ -70,7 +72,7 @@ export function Participants() {
             type="text"
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Cerca partecipante..."
+            placeholder={t('participants.searchPlaceholder')}
             className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
           />
         </div>
@@ -91,10 +93,10 @@ export function Participants() {
           </li>
         ))}
         {filtered.length === 0 && users.length > 0 && (
-          <li className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">Nessun risultato per "{searchQuery}"</li>
+          <li className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">{t('participants.noResults', { query: searchQuery })}</li>
         )}
         {users.length === 0 && (
-          <li className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">Nessun partecipante. Aggiungine uno!</li>
+          <li className="text-gray-500 dark:text-gray-400 text-center py-4 text-sm">{t('participants.empty')}</li>
         )}
       </ul>
 
@@ -106,7 +108,7 @@ export function Participants() {
             className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft size={16} />
-            Prec
+            {t('pagination.prev')}
           </button>
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {safePage + 1} / {totalPages}
@@ -116,7 +118,7 @@ export function Participants() {
             disabled={safePage === totalPages - 1}
             className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            Succ
+            {t('pagination.next')}
             <ChevronRight size={16} />
           </button>
         </div>
