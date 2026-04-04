@@ -1,0 +1,49 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+.planning/
+
+# OpenCode AI Generated Files
+.claude/
+.opencode/
+.ai/
+*.ai.json
+*.generated.ts
+*.generated.js
+*.generated.json
+__generated__/
+
+# Superpowers Generated Files
+.superpowers/
+*.superpowers.json
+superpowers-cache/
+
+# GSD (Getting Stuff Done) Generated Files
+.gsd/
+.gsd-state/
+.gsd-cache/
+*.gsd-*.json
+.gsd-checkpoints/
+.gsd-plans/
+.gsd-research/
+*.RESEARCH.md
+*.VERIFICATION.md
+*.UI-REVIEW.md
+*.gsd-session
+
+# LLM Cache
+.cache/
+*.cache/
+.llm-cache/
+.opencode-cache/
+
+# AI Model outputs
+*.gpt-response
+*.openai-*
+*.claude-*
+*.ai-*

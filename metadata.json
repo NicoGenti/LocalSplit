@@ -1,0 +1,5 @@
+{
+  "name": "Split Local",
+  "description": "A local-first Splitwise clone for managing group expenses without a backend database.",
+  "requestFramePermissions": []
+}
