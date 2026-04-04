@@ -4,6 +4,7 @@ import { Participants } from './components/Participants';
 import { Balances } from './components/Balances';
 import { ExpenseList } from './components/ExpenseList';
 import { AddExpenseModal } from './components/AddExpenseModal';
+import { LandingPage } from './components/LandingPage';
 import { Edit2, Check, Moon, Sun, Wallet, Receipt, Users, Plus } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { useTranslation } from './i18n/index';
@@ -26,6 +27,7 @@ export default function App() {
     }
     return false;
   });
+  const [view, setView] = useState<'landing' | 'app'>('landing');
 
   useEffect(() => {
     if (isDarkMode) {
@@ -55,6 +57,16 @@ export default function App() {
     { id: 'expenses', labelKey: 'tabs.expenses', icon: <Receipt size={22} /> },
     { id: 'group',    labelKey: 'tabs.group',    icon: <Users size={22} /> },
   ];
+
+  if (view === 'landing') {
+    return (
+      <LandingPage
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={() => setIsDarkMode(d => !d)}
+        onEnterApp={() => setView('app')}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-200">
