@@ -82,11 +82,8 @@ export default function App() {
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 transition-colors duration-200">
         <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
 
-          {/* Left: avatar + group name */}
+          {/* Left: group name */}
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-sm uppercase shrink-0">
-              {store.name ? store.name.charAt(0) : '?'}
-            </div>
             {isEditingName ? (
               <div className="flex items-center gap-1.5 min-w-0">
                 <input
