@@ -34,4 +34,5 @@ export interface GroupState {
   name: string;
   users: User[];
   expenses: Expense[];
+  minDebtThreshold?: number; // soglia minima in € sotto cui un debito viene ignorato (default 0.50)
 }

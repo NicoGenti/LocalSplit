@@ -12,6 +12,7 @@ interface GroupStore extends GroupState {
   updateExpense: (id: string, expense: Omit<Expense, 'id' | 'date'>) => void;
   removeExpense: (id: string) => void;
   importState: (state: GroupState) => void;
+  setMinDebtThreshold: (threshold: number) => void;
   reset: () => void;
 }
 
@@ -21,6 +22,7 @@ export const useGroupStore = create<GroupStore>()(
       name: 'Nuovo Gruppo',
       users: [],
       expenses: [],
+      minDebtThreshold: 0.50,
       setName: (name) => set({ name }),
       addUser: (name) => set((state) => ({
         users: [...state.users, { id: uuidv4(), name }]
@@ -73,6 +75,7 @@ export const useGroupStore = create<GroupStore>()(
       removeExpense: (id) => set((state) => ({
         expenses: state.expenses.filter(e => e.id !== id)
       })),
+      setMinDebtThreshold: (threshold) => set({ minDebtThreshold: threshold }),
       importState: (newState) => {
         if (
           typeof newState === 'object' &&
@@ -84,7 +87,7 @@ export const useGroupStore = create<GroupStore>()(
           set(newState);
         }
       },
-      reset: () => set({ name: 'Nuovo Gruppo', users: [], expenses: [] })
+      reset: () => set({ name: 'Nuovo Gruppo', users: [], expenses: [], minDebtThreshold: 0.50 })
     }),
     {
       name: 'split-app-storage',
