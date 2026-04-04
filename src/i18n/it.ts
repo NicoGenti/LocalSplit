@@ -84,6 +84,15 @@ export const it = {
     emptyNoUsers: 'Aggiungi partecipanti nella scheda Gruppo per iniziare',
     emptyNoExpenses: 'Aggiungi una spesa nella scheda Spese per vedere i saldi',
   },
+  participantDetail: {
+    titleCreditor: '{name} deve ricevere',
+    titleDebtor: '{name} deve pagare',
+    owesYou: '{name} ti deve {amount} €',
+    youOwe: 'Devi {amount} € a {name}',
+    noDebts: 'Nessun debito in sospeso.',
+    viewDetail: 'Vedi dettagli di {name}',
+    closeLabel: 'Chiudi',
+  },
   confirmDelete: {
     title: 'Sei sicuro di voler eliminare?',
     no: 'No',

@@ -6,6 +6,7 @@ import { Debt } from '../types';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from '../i18n/index';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { ParticipantDetailModal } from './ParticipantDetailModal';
 
 const PAGE_SIZE = 5;
 
@@ -76,6 +77,10 @@ export function Balances() {
   const [creditorsPage, setCreditorsPage] = useState(0);
   const [debtorsSearch, setDebtorsSearch] = useState('');
   const [debtorsPage, setDebtorsPage] = useState(0);
+  const [selectedParticipant, setSelectedParticipant] = useState<{
+    userId: string;
+    role: 'creditor' | 'debtor';
+  } | null>(null);
 
   useEffect(() => {
     if (!showInfo) return;
@@ -301,10 +306,14 @@ export function Balances() {
                 <div className="space-y-2">
                   {paginatedCreditors.map(([userId, balance]) => (
                     <div key={userId} className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <button
+                        onClick={() => setSelectedParticipant({ userId, role: 'creditor' })}
+                        className="flex items-center gap-2 min-w-0 flex-1 text-left hover:opacity-75 transition-opacity"
+                        aria-label={t('participantDetail.viewDetail', { name: getUserName(userId) })}
+                      >
                         <Avatar name={getUserName(userId)} className="bg-green-500 w-6 h-6 text-xs shrink-0" />
                         <span className="font-medium text-gray-700 dark:text-gray-300 truncate">{getUserName(userId)}</span>
-                      </div>
+                      </button>
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold whitespace-nowrap bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 shrink-0">
                         +{balance.toFixed(2)} €
                       </span>
@@ -341,10 +350,14 @@ export function Balances() {
                 <div className="space-y-2">
                   {paginatedDebtors.map(([userId, balance]) => (
                     <div key={userId} className="flex justify-between items-center p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm transition-colors">
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <button
+                        onClick={() => setSelectedParticipant({ userId, role: 'debtor' })}
+                        className="flex items-center gap-2 min-w-0 flex-1 text-left hover:opacity-75 transition-opacity"
+                        aria-label={t('participantDetail.viewDetail', { name: getUserName(userId) })}
+                      >
                         <Avatar name={getUserName(userId)} className="bg-red-500 w-6 h-6 text-xs shrink-0" />
                         <span className="font-medium text-gray-700 dark:text-gray-300 truncate">{getUserName(userId)}</span>
-                      </div>
+                      </button>
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-semibold whitespace-nowrap bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 shrink-0">
                         {balance.toFixed(2)} €
                       </span>
@@ -382,6 +395,17 @@ export function Balances() {
         confirmLabel={t('balances.settle')}
         variant="confirm"
       />
+
+      {selectedParticipant && (
+        <ParticipantDetailModal
+          isOpen={true}
+          onClose={() => setSelectedParticipant(null)}
+          userId={selectedParticipant.userId}
+          role={selectedParticipant.role}
+          debts={debts}
+          getUserName={getUserName}
+        />
+      )}
     </div>
   );
 }
