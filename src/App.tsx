@@ -6,20 +6,16 @@ import { ExpenseList } from './components/ExpenseList';
 import { AddExpenseModal } from './components/AddExpenseModal';
 import { Edit2, Check, Moon, Sun, Wallet, Receipt, Users, Plus } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
+import { useTranslation } from './i18n/index';
 
-type Tab = 'riepilogo' | 'spese' | 'gruppo';
+type Tab = 'summary' | 'expenses' | 'group';
 
 const DARK_TOAST_STYLE = { background: '#374151', color: '#fff' };
 
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  { id: 'riepilogo', label: 'Riepilogo', icon: <Wallet size={22} /> },
-  { id: 'spese',     label: 'Spese',     icon: <Receipt size={22} /> },
-  { id: 'gruppo',    label: 'Gruppo',    icon: <Users size={22} /> },
-];
-
 export default function App() {
   const store = useGroupStore();
-  const [activeTab, setActiveTab] = useState<Tab>('riepilogo');
+  const { t, language, setLanguage } = useTranslation();
+  const [activeTab, setActiveTab] = useState<Tab>('summary');
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(store.name);
@@ -47,12 +43,18 @@ export default function App() {
   const handleNameSave = () => {
     if (tempName.trim() && tempName.trim() !== store.name) {
       store.setName(tempName.trim());
-      toast.success('Nome del gruppo aggiornato');
+      toast.success(t('header.groupNameUpdated'));
     }
     setIsEditingName(false);
   };
 
   const handleCloseModal = useCallback(() => setIsAddExpenseOpen(false), []);
+
+  const TABS: { id: Tab; labelKey: string; icon: React.ReactNode }[] = [
+    { id: 'summary',  labelKey: 'tabs.summary',  icon: <Wallet size={22} /> },
+    { id: 'expenses', labelKey: 'tabs.expenses', icon: <Receipt size={22} /> },
+    { id: 'group',    labelKey: 'tabs.group',    icon: <Users size={22} /> },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-200">
@@ -103,11 +105,18 @@ export default function App() {
             )}
           </div>
 
-          {/* Right: total + dark mode toggle */}
+          {/* Right: total + language toggle + dark mode toggle */}
           <div className="flex items-center gap-3 shrink-0">
             <span className="text-sm font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">
-              Totale: <span className="text-gray-900 dark:text-white">€{totalExpenses.toFixed(2)}</span>
+              {t('header.total')} <span className="text-gray-900 dark:text-white">€{totalExpenses.toFixed(2)}</span>
             </span>
+            <button
+              onClick={() => setLanguage(language === 'it' ? 'en' : 'it')}
+              className="text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors px-1"
+              aria-label="Change language"
+            >
+              {language === 'it' ? 'EN' : 'IT'}
+            </button>
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
@@ -127,17 +136,17 @@ export default function App() {
 
       {/* ── Main content ── */}
       <main className="max-w-xl mx-auto px-4 pt-6 pb-24">
-        {activeTab === 'riepilogo' && <Balances />}
-        {activeTab === 'spese'     && <ExpenseList />}
-        {activeTab === 'gruppo'    && <Participants />}
+        {activeTab === 'summary'  && <Balances />}
+        {activeTab === 'expenses' && <ExpenseList />}
+        {activeTab === 'group'    && <Participants />}
       </main>
 
-      {/* ── FAB (only on Spese tab) ── */}
-      {activeTab === 'spese' && (
+      {/* ── FAB (only on Expenses tab) ── */}
+      {activeTab === 'expenses' && (
         <button
           onClick={() => setIsAddExpenseOpen(true)}
           className="fixed bottom-20 right-4 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center z-20 transition-colors"
-          aria-label="Aggiungi spesa"
+          aria-label={t('header.addExpense')}
         >
           <Plus size={26} />
         </button>
@@ -163,10 +172,10 @@ export default function App() {
                     ? 'text-blue-600 dark:text-blue-400'
                     : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
                 }`}
-                aria-label={tab.label}
+                aria-label={t(tab.labelKey)}
               >
                 {tab.icon}
-                <span className="text-[11px] font-medium">{tab.label}</span>
+                <span className="text-[11px] font-medium">{t(tab.labelKey)}</span>
               </button>
             );
           })}

@@ -5,9 +5,11 @@ import { EditExpenseModal } from './EditExpenseModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { Expense } from '../types';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from '../i18n/index';
 
 export function ExpenseList() {
   const { expenses, users, removeExpense } = useGroupStore();
+  const { t, dateLocale } = useTranslation();
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export function ExpenseList() {
   }, [openMenuId]);
 
   const userMap = useMemo(() => new Map(users.map(u => [u.id, u.name])), [users]);
-  const getUserName = (id: string) => userMap.get(id) ?? 'Sconosciuto';
+  const getUserName = (id: string) => userMap.get(id) ?? t('balances.unknown');
 
   const groupedExpenses = useMemo<Record<string, Expense[]>>(() => {
     const sorted = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -36,18 +38,26 @@ export function ExpenseList() {
       const isToday = dateObj.getDate() === today.getDate() &&
                       dateObj.getMonth() === today.getMonth() &&
                       dateObj.getFullYear() === today.getFullYear();
-      const dateStr = isToday
-        ? `Oggi — ${dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}`
-        : dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' });
+      const formatted = dateObj.toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' });
+      const dateStr = isToday ? `${t('expenseList.today')} — ${formatted}` : formatted;
       if (!acc[dateStr]) acc[dateStr] = [];
       acc[dateStr].push(expense);
       return acc;
     }, {});
-  }, [expenses]);
+  }, [expenses, t, dateLocale]);
 
   const handleRemove = (id: string) => {
     removeExpense(id);
-    toast.success('Spesa eliminata');
+    toast.success(t('expenseList.deleted'));
+  };
+
+  const getCategoryLabel = (category: string) => {
+    const map: Record<string, string> = {
+      cibo: t('expense.categories.food'),
+      trasporti: t('expense.categories.transport'),
+      altro: t('expense.categories.other'),
+    };
+    return map[category] ?? category;
   };
 
   if (expenses.length === 0) {
@@ -56,9 +66,9 @@ export function ExpenseList() {
         <div className="w-16 h-16 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4 transition-colors">
           <Receipt size={32} className="text-gray-400 dark:text-gray-500" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">Nessuna spesa ancora</h3>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">{t('expenseList.empty')}</h3>
         <p className="text-gray-500 dark:text-gray-400 text-sm max-w-[250px]">
-          Aggiungi la tua prima spesa per iniziare a dividere i conti con il gruppo!
+          {t('expenseList.emptyHint')}
         </p>
       </div>
     );
@@ -88,7 +98,7 @@ export function ExpenseList() {
     <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
       <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white flex items-center gap-2">
         <History size={20} />
-        Storico Spese
+        {t('expenseList.title')}
       </h2>
 
       <div className="space-y-4">
@@ -104,7 +114,7 @@ export function ExpenseList() {
                     {expense.category && (
                       <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider shrink-0 ${getCategoryBadgeClass(expense.category)}`}>
                         {getCategoryIcon(expense.category)}
-                        {expense.category}
+                        {getCategoryLabel(expense.category)}
                       </span>
                     )}
                     <span className="ml-auto font-bold text-gray-800 dark:text-white text-base shrink-0">€{expense.amount.toFixed(2)}</span>
@@ -124,14 +134,14 @@ export function ExpenseList() {
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                           >
                             <Edit2 size={15} />
-                            Modifica
+                            {t('expenseList.edit')}
                           </button>
                           <button
                             onClick={() => { setDeletingExpenseId(expense.id); setOpenMenuId(null); }}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           >
                             <Trash2 size={15} />
-                            Elimina
+                            {t('expenseList.delete')}
                           </button>
                         </div>
                       )}
@@ -139,10 +149,10 @@ export function ExpenseList() {
                   </div>
                   {/* Riga 2: pagato da + per chi */}
                   <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400 min-w-0">
-                    <span className="shrink-0">Pagato da</span>
+                    <span className="shrink-0">{t('expenseList.paidBy')}</span>
                     <span className="font-medium text-gray-700 dark:text-gray-300 truncate min-w-0 flex-1">{getUserName(expense.payerId)}</span>
                     <span className="shrink-0">•</span>
-                    <span className="shrink-0">Per:</span>
+                    <span className="shrink-0">{t('expenseList.for')}</span>
                     <div className="flex -space-x-1.5 shrink-0">
                       {expense.splits.map(split => (
                         <div

@@ -3,6 +3,7 @@ import { useGroupStore } from '../store/useGroupStore';
 import { SplitType, Split, ExpenseCategory } from '../types';
 import { Receipt, Check, Utensils, Bus, ShoppingBag } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useTranslation } from '../i18n/index';
 
 interface AddExpenseProps {
   onSuccess?: () => void;
@@ -11,6 +12,7 @@ interface AddExpenseProps {
 
 export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
   const { users, addExpense } = useGroupStore();
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [payerId, setPayerId] = useState('');
@@ -44,7 +46,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
       });
       
       if (Math.abs(sum - numAmount) > 0.01) {
-        toast.error(`La somma delle quote personalizzate (€${sum.toFixed(2)}) non corrisponde al totale (€${numAmount.toFixed(2)}).`);
+        toast.error(t('expense.customSumError', { sum: sum.toFixed(2), total: numAmount.toFixed(2) }));
         return;
       }
     }
@@ -58,7 +60,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
       splits
     });
 
-    toast.success('Spesa aggiunta con successo!');
+    toast.success(t('expense.saveSuccess'));
 
     setTitle('');
     setAmount('');
@@ -92,7 +94,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
     if (asModal) {
       return (
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
-          Aggiungi partecipanti nella tab <span className="font-semibold">Gruppo</span> prima di inserire una spesa.
+          {t('expense.noUsersHint')}
         </p>
       );
     }
@@ -102,12 +104,12 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
   const formContent = (
     <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Titolo</label>
+          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{t('expense.title')}</label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Es. Cena pizzeria"
+            placeholder={t('expense.placeholder')}
             maxLength={100}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
             required
@@ -116,7 +118,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
 
         <div className="flex gap-4">
           <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Importo (€)</label>
+            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{t('expense.amount')}</label>
             <input
               type="number"
               step="0.01"
@@ -129,7 +131,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
             />
           </div>
           <div className="flex-1">
-            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Pagato da</label>
+            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{t('expense.paidBy')}</label>
             <select
               value={payerId}
               onChange={(e) => setPayerId(e.target.value)}
@@ -145,43 +147,43 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Categoria (Opzionale)</label>
+          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{t('expense.category')}</label>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setCategory(category === 'cibo' ? undefined : 'cibo')}
               className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-all flex items-center justify-center gap-2 ${
-                category === 'cibo' 
-                  ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-500 text-orange-700 dark:text-orange-400 ring-1 ring-orange-500' 
+                category === 'cibo'
+                  ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-500 text-orange-700 dark:text-orange-400 ring-1 ring-orange-500'
                   : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
               }`}
             >
               <Utensils size={16} />
-              Cibo
+              {t('expense.categories.food')}
             </button>
             <button
               type="button"
               onClick={() => setCategory(category === 'trasporti' ? undefined : 'trasporti')}
               className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-all flex items-center justify-center gap-2 ${
-                category === 'trasporti' 
-                  ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500' 
+                category === 'trasporti'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500'
                   : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
               }`}
             >
               <Bus size={16} />
-              Trasporti
+              {t('expense.categories.transport')}
             </button>
             <button
               type="button"
               onClick={() => setCategory(category === 'altro' ? undefined : 'altro')}
               className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-all flex items-center justify-center gap-2 ${
-                category === 'altro' 
-                  ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 text-purple-700 dark:text-purple-400 ring-1 ring-purple-500' 
+                category === 'altro'
+                  ? 'bg-purple-50 dark:bg-purple-900/30 border-purple-500 text-purple-700 dark:text-purple-400 ring-1 ring-purple-500'
                   : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
               }`}
             >
               <ShoppingBag size={16} />
-              Altro
+              {t('expense.categories.other')}
             </button>
           </div>
         </div>
@@ -193,21 +195,21 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
               onClick={() => setSplitType('EQUAL')}
               className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${splitType === 'EQUAL' ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-600 text-blue-700 dark:text-blue-400 ring-1 ring-blue-600' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'}`}
             >
-              In parti uguali
+              {t('expense.equalSplit')}
             </button>
             <button
               type="button"
               onClick={() => setSplitType('CUSTOM')}
               className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${splitType === 'CUSTOM' ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-600 text-blue-700 dark:text-blue-400 ring-1 ring-blue-600' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'}`}
             >
-              Quote esatte
+              {t('expense.exactSplit')}
             </button>
           </div>
 
           <div className="flex justify-between items-center mb-3">
-            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Per chi?</label>
+            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('expense.forWhom')}</label>
             <button type="button" onClick={toggleAll} className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">
-              {selectedUsers.size === users.length ? 'Deseleziona tutti' : 'Seleziona tutti'}
+              {selectedUsers.size === users.length ? t('expense.deselectAll') : t('expense.selectAll')}
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -233,7 +235,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
 
           {splitType === 'CUSTOM' && selectedUsers.size > 0 && (
             <div className="mt-5 space-y-3 border-t border-gray-100 dark:border-gray-700 pt-5">
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Inserisci le quote esatte:</label>
+              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">{t('expense.exactAmounts')}</label>
               {Array.from(selectedUsers).map((userId: string) => (
                 <div key={userId} className="flex items-center justify-between gap-4">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{users.find(u => u.id === userId)?.name}</span>
@@ -261,7 +263,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
           disabled={!title || !amount || !payerId || selectedUsers.size === 0}
           className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-700 disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:text-gray-400 dark:disabled:text-gray-500 disabled:cursor-not-allowed mt-6 transition-all"
         >
-          Salva Spesa
+          {t('expense.save')}
         </button>
       </form>
   );
@@ -274,7 +276,7 @@ export function AddExpense({ onSuccess, asModal }: AddExpenseProps = {}) {
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
       <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
         <Receipt size={20} />
-        Aggiungi Spesa
+        {t('expense.addTitle')}
       </h2>
       {formContent}
     </div>
