@@ -107,7 +107,7 @@ export function ExpenseList() {
             <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pl-1">{dateStr}</h3>
             <div className="space-y-2">
               {dayExpenses.map(expense => (
-                <div key={expense.id} className="relative p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500 transition-colors">
+                <div key={expense.id} onClick={() => setEditingExpenseId(expense.id)} className="relative p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500 transition-colors cursor-pointer">
                   {/* Riga 1: titolo + badge + importo + menu */}
                   <div className="flex items-center gap-2 min-w-0">
                     <h4 className="font-medium text-gray-800 dark:text-gray-200 truncate">{expense.title}</h4>
@@ -121,7 +121,7 @@ export function ExpenseList() {
                     {/* Menu contestuale */}
                     <div className="relative shrink-0" data-menu-id={expense.id}>
                       <button
-                        onClick={() => setOpenMenuId(openMenuId === expense.id ? null : expense.id)}
+                        onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === expense.id ? null : expense.id); }}
                         className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                         aria-label="Azioni spesa"
                       >
@@ -130,14 +130,14 @@ export function ExpenseList() {
                       {openMenuId === expense.id && (
                         <div className="absolute right-0 top-7 z-30 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg py-1 min-w-[140px]">
                           <button
-                            onClick={() => { setEditingExpenseId(expense.id); setOpenMenuId(null); }}
+                            onClick={(e) => { e.stopPropagation(); setEditingExpenseId(expense.id); setOpenMenuId(null); }}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                           >
                             <Edit2 size={15} />
                             {t('expenseList.edit')}
                           </button>
                           <button
-                            onClick={() => { setDeletingExpenseId(expense.id); setOpenMenuId(null); }}
+                            onClick={(e) => { e.stopPropagation(); setDeletingExpenseId(expense.id); setOpenMenuId(null); }}
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           >
                             <Trash2 size={15} />
