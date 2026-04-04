@@ -84,6 +84,15 @@ export const en = {
     emptyNoUsers: 'Add participants in the Group tab to get started',
     emptyNoExpenses: 'Add an expense in the Expenses tab to see balances',
   },
+  participantDetail: {
+    titleCreditor: '{name} will receive',
+    titleDebtor: '{name} owes',
+    owesYou: '{name} owes you {amount} €',
+    youOwe: 'You owe {name} {amount} €',
+    noDebts: 'No pending debts.',
+    viewDetail: 'View details for {name}',
+    closeLabel: 'Close',
+  },
   confirmDelete: {
     title: 'Are you sure you want to delete?',
     no: 'No',
