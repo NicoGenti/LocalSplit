@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useGroupStore } from '../store/useGroupStore';
-import { calculateBalances, simplifyDebts } from '../lib/algorithm';
+import { calculateBalances, simplifyDebts, MIN_DEBT_THRESHOLD_DEFAULT } from '../lib/algorithm';
 import { ArrowRight, Wallet, TrendingUp, TrendingDown, CheckCircle2, Info, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Debt } from '../types';
 import { toast } from 'react-hot-toast';
@@ -64,7 +64,7 @@ function SearchInput({ value, onChange, placeholder }: {
 }
 
 export function Balances() {
-  const { users, expenses, addExpense } = useGroupStore();
+  const { users, expenses, addExpense, minDebtThreshold, setMinDebtThreshold } = useGroupStore();
   const { t } = useTranslation();
   const [showInfo, setShowInfo] = useState(false);
   const [settlingDebt, setSettlingDebt] = useState<Debt | null>(null);
@@ -98,7 +98,7 @@ export function Balances() {
 
   const { balances, debts, creditors, debtors } = useMemo(() => {
     const bals = calculateBalances(expenses, users);
-    const simplifiedDebts = simplifyDebts(bals);
+    const simplifiedDebts = simplifyDebts(bals, minDebtThreshold ?? MIN_DEBT_THRESHOLD_DEFAULT);
     const creds = (Object.entries(bals) as [string, number][])
       .filter(([_, bal]) => bal > 0.01)
       .sort((a, b) => b[1] - a[1]);
@@ -106,7 +106,7 @@ export function Balances() {
       .filter(([_, bal]) => bal < -0.01)
       .sort((a, b) => a[1] - b[1]);
     return { balances: bals, debts: simplifiedDebts, creditors: creds, debtors: dbtrs };
-  }, [expenses, users]);
+  }, [expenses, users, minDebtThreshold]);
 
   const handleSettle = (debt: Debt) => {
     setSettlingDebt(debt);
@@ -322,10 +322,24 @@ export function Balances() {
       )}
 
       <div className="pt-6 border-t border-gray-100 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-          <ArrowRight size={18} />
-          {t('balances.title')}
-        </h3>
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+            <ArrowRight size={18} />
+            {t('balances.title')}
+          </h3>
+          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <span className="whitespace-nowrap">{t('balances.minThresholdLabel')}:</span>
+            <select
+              value={minDebtThreshold ?? MIN_DEBT_THRESHOLD_DEFAULT}
+              onChange={(e) => setMinDebtThreshold(Number(e.target.value))}
+              className="border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+            >
+              {[0, 0.25, 0.50, 1.00, 2.00].map((v) => (
+                <option key={v} value={v}>€{v.toFixed(2)}</option>
+              ))}
+            </select>
+          </label>
+        </div>
         {debts.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <p>{t('balances.allSettled')}</p>

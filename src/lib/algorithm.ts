@@ -1,5 +1,7 @@
 import { Expense, Debt, User } from '../types';
 
+export const MIN_DEBT_THRESHOLD_DEFAULT = 0.50;
+
 /**
  * Calcola i saldi netti per ogni utente.
  * Un saldo positivo significa che l'utente deve ricevere soldi (creditore).
@@ -39,7 +41,7 @@ export function calculateBalances(expenses: Expense[], users: User[]): Record<st
  * Algoritmo Greedy per semplificare i debiti.
  * Minimizza il numero di transazioni necessarie per azzerare i saldi.
  */
-export function simplifyDebts(balances: Record<string, number>): Debt[] {
+export function simplifyDebts(balances: Record<string, number>, minThreshold = MIN_DEBT_THRESHOLD_DEFAULT): Debt[] {
   const debtors: { id: string, amount: number }[] = [];
   const creditors: { id: string, amount: number }[] = [];
 
@@ -86,5 +88,5 @@ export function simplifyDebts(balances: Record<string, number>): Debt[] {
     if (creditor.amount < 0.01) j++;
   }
 
-  return debts;
+  return debts.filter(d => d.exactAmount >= minThreshold);
 }
