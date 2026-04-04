@@ -18,6 +18,9 @@ export const en = {
     noResults: 'No results for "{query}"',
     added: '{name} added to group',
     removed: '{name} removed from group',
+    edit: 'Rename',
+    editPlaceholder: 'New name...',
+    edited: '{name} renamed successfully',
   },
   expense: {
     title: 'Title',

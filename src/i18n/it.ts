@@ -18,6 +18,9 @@ export const it = {
     noResults: 'Nessun risultato per "{query}"',
     added: '{name} aggiunto al gruppo',
     removed: '{name} rimosso dal gruppo',
+    edit: 'Rinomina',
+    editPlaceholder: 'Nuovo nome...',
+    edited: '{name} rinominato con successo',
   },
   expense: {
     title: 'Titolo',
