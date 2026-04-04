@@ -3,6 +3,7 @@ import { useGroupStore } from '../store/useGroupStore';
 import { UserPlus, Trash2, Search, ChevronLeft, ChevronRight, Pencil, Check, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { SwipeableItem } from './SwipeableItem';
 import { useTranslation } from '../i18n/index';
 
 const PAGE_SIZE = 5;
@@ -15,6 +16,7 @@ export function Participants() {
   const [editingUser, setEditingUser] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
+  const [activeSwipeId, setActiveSwipeId] = useState<string | null>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
 
   const handleAdd = (e: React.FormEvent) => {
@@ -92,66 +94,80 @@ export function Participants() {
 
       <ul className="space-y-2">
         {paginated.map(user => (
-          <li key={user.id} className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
-            {editingUser?.id === user.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editingUser.name}
-                  autoFocus
-                  maxLength={50}
-                  onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && editingUser.name.trim() && editingUser.name.trim() !== user.name) {
-                      handleEditSave(user.id, editingUser.name);
-                    } else if (e.key === 'Escape') {
-                      setEditingUser(null);
-                    }
-                  }}
-                  className="flex-1 px-2 py-1 mr-2 text-sm border border-blue-400 dark:border-blue-500 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors font-medium"
-                />
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => handleEditSave(user.id, editingUser.name)}
-                    disabled={!editingUser.name.trim() || editingUser.name.trim() === user.name}
-                    className="text-gray-400 hover:text-green-600 p-1.5 rounded-md hover:bg-green-50 dark:hover:bg-green-900/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    title={t('participants.edit')}
-                    aria-label={t('participants.edit')}
-                  >
-                    <Check size={18} />
-                  </button>
-                  <button
-                    onClick={() => setEditingUser(null)}
-                    className="text-gray-400 hover:text-gray-600 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                    aria-label="Annulla"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <span className="font-medium text-gray-700 dark:text-gray-200">{user.name}</span>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => setEditingUser({ id: user.id, name: user.name })}
-                    className="text-gray-400 hover:text-blue-600 p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
-                    title={t('participants.edit')}
-                    aria-label={`${t('participants.edit')} ${user.name}`}
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    onClick={() => setDeletingUser({ id: user.id, name: user.name })}
-                    className="text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
-                    title="Rimuovi"
-                    aria-label={`Rimuovi ${user.name}`}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </>
-            )}
+          <li key={user.id}>
+            <SwipeableItem
+              id={user.id}
+              onEdit={() => setEditingUser({ id: user.id, name: user.name })}
+              onDelete={() => setDeletingUser({ id: user.id, name: user.name })}
+              editLabel={t('participants.edit')}
+              deleteLabel={t('expenseList.delete')}
+              disabled={editingUser?.id === user.id}
+              isGroupActive={activeSwipeId !== null && activeSwipeId !== user.id}
+              onBecomeActive={() => setActiveSwipeId(user.id)}
+              onBecomeInactive={() => setActiveSwipeId(prev => prev === user.id ? null : prev)}
+            >
+              <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 transition-colors">
+                {editingUser?.id === user.id ? (
+                  <>
+                    <input
+                      type="text"
+                      value={editingUser.name}
+                      autoFocus
+                      maxLength={50}
+                      onChange={(e) => setEditingUser({ ...editingUser, name: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && editingUser.name.trim() && editingUser.name.trim() !== user.name) {
+                          handleEditSave(user.id, editingUser.name);
+                        } else if (e.key === 'Escape') {
+                          setEditingUser(null);
+                        }
+                      }}
+                      className="flex-1 px-2 py-1 mr-2 text-sm border border-blue-400 dark:border-blue-500 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors font-medium"
+                    />
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleEditSave(user.id, editingUser.name)}
+                        disabled={!editingUser.name.trim() || editingUser.name.trim() === user.name}
+                        className="text-gray-400 hover:text-green-600 p-1.5 rounded-md hover:bg-green-50 dark:hover:bg-green-900/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        title={t('participants.edit')}
+                        aria-label={t('participants.edit')}
+                      >
+                        <Check size={18} />
+                      </button>
+                      <button
+                        onClick={() => setEditingUser(null)}
+                        className="text-gray-400 hover:text-gray-600 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                        aria-label="Annulla"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium text-gray-700 dark:text-gray-200">{user.name}</span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => setEditingUser({ id: user.id, name: user.name })}
+                        className="text-gray-400 hover:text-blue-600 p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                        title={t('participants.edit')}
+                        aria-label={`${t('participants.edit')} ${user.name}`}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => setDeletingUser({ id: user.id, name: user.name })}
+                        className="text-gray-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                        title="Rimuovi"
+                        aria-label={`Rimuovi ${user.name}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </SwipeableItem>
           </li>
         ))}
         {filtered.length === 0 && users.length > 0 && (
