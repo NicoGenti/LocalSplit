@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
-import { X, ArrowRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Debt } from '../types';
 import { useTranslation } from '../i18n/index';
+
+const PAGE_SIZE = 5;
 
 const Avatar = ({ name, className }: { name: string; className?: string }) => (
   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm uppercase shrink-0 ${className}`}>
@@ -27,6 +29,12 @@ export function ParticipantDetailModal({
   getUserName,
 }: ParticipantDetailModalProps) {
   const { t } = useTranslation();
+  const [page, setPage] = useState(0);
+
+  // Reset page when the viewed participant changes
+  useEffect(() => {
+    setPage(0);
+  }, [userId]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -45,6 +53,10 @@ export function ParticipantDetailModal({
     role === 'creditor'
       ? debts.filter((d) => d.to === userId)
       : debts.filter((d) => d.from === userId);
+
+  const totalPages = Math.max(1, Math.ceil(relatedDebts.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginatedDebts = relatedDebts.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
   const title =
     role === 'creditor'
@@ -88,59 +100,88 @@ export function ParticipantDetailModal({
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto p-4 space-y-2">
+        <div className="overflow-y-auto p-4 flex flex-col gap-2">
           {relatedDebts.length === 0 ? (
             <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
               {t('participantDetail.noDebts')}
             </p>
           ) : (
-            relatedDebts.map((debt, i) => {
-              const counterpartyId = role === 'creditor' ? debt.from : debt.to;
-              const counterpartyName = getUserName(counterpartyId);
-              const label =
-                role === 'creditor'
-                  ? t('participantDetail.owesYou', {
-                      name: counterpartyName,
-                      amount: debt.amount.toFixed(2),
-                    })
-                  : t('participantDetail.youOwe', {
-                      name: counterpartyName,
-                      amount: debt.amount.toFixed(2),
-                    });
+            <>
+              <div className="space-y-2">
+                {paginatedDebts.map((debt, i) => {
+                  const counterpartyId = role === 'creditor' ? debt.from : debt.to;
+                  const counterpartyName = getUserName(counterpartyId);
+                  const label =
+                    role === 'creditor'
+                      ? t('participantDetail.owesYou', {
+                          name: counterpartyName,
+                          amount: debt.amount.toFixed(2),
+                        })
+                      : t('participantDetail.youOwe', {
+                          name: counterpartyName,
+                          amount: debt.amount.toFixed(2),
+                        });
 
-              return (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 rounded-lg"
-                >
-                  <Avatar
-                    name={counterpartyName}
-                    className={role === 'creditor' ? 'bg-red-400' : 'bg-green-400'}
-                  />
-                  <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300 min-w-0 truncate">
-                    {counterpartyName}
-                  </span>
-                  <ArrowRight
-                    size={16}
-                    className={
-                      role === 'creditor'
-                        ? 'text-green-500 shrink-0'
-                        : 'text-red-500 shrink-0'
-                    }
-                  />
-                  <span
-                    className={`text-sm font-semibold shrink-0 ${
-                      role === 'creditor'
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
-                    }`}
-                    title={label}
+                  return (
+                    <div
+                      key={i}
+                      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 rounded-lg"
+                    >
+                      <Avatar
+                        name={counterpartyName}
+                        className={role === 'creditor' ? 'bg-red-400' : 'bg-green-400'}
+                      />
+                      <span className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-300 min-w-0 truncate">
+                        {counterpartyName}
+                      </span>
+                      <ArrowRight
+                        size={16}
+                        className={
+                          role === 'creditor'
+                            ? 'text-green-500 shrink-0'
+                            : 'text-red-500 shrink-0'
+                        }
+                      />
+                      <span
+                        className={`text-sm font-semibold shrink-0 ${
+                          role === 'creditor'
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-red-600 dark:text-red-400'
+                        }`}
+                        title={label}
+                      >
+                        {debt.amount.toFixed(2)} €
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <button
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={safePage === 0}
+                    className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
-                    {debt.amount.toFixed(2)} €
+                    <ChevronLeft size={16} />
+                    {t('pagination.prev')}
+                  </button>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {safePage + 1} / {totalPages}
                   </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    disabled={safePage === totalPages - 1}
+                    className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {t('pagination.next')}
+                    <ChevronRight size={16} />
+                  </button>
                 </div>
-              );
-            })
+              )}
+            </>
           )}
         </div>
       </div>
