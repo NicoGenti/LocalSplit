@@ -3,6 +3,7 @@ import { useGroupStore } from '../store/useGroupStore';
 import { History, Utensils, Bus, ShoppingBag, Receipt, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { EditExpenseModal } from './EditExpenseModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { SwipeableItem } from './SwipeableItem';
 import { Expense } from '../types';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from '../i18n/index';
@@ -13,6 +14,7 @@ export function ExpenseList() {
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(null);
+  const [activeSwipeId, setActiveSwipeId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -107,7 +109,18 @@ export function ExpenseList() {
             <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 pl-1">{dateStr}</h3>
             <div className="space-y-2">
               {dayExpenses.map(expense => (
-                <div key={expense.id} onClick={() => setEditingExpenseId(expense.id)} className="relative p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500 transition-colors cursor-pointer">
+                <SwipeableItem
+                  key={expense.id}
+                  id={expense.id}
+                  onEdit={() => setEditingExpenseId(expense.id)}
+                  onDelete={() => setDeletingExpenseId(expense.id)}
+                  editLabel={t('expenseList.edit')}
+                  deleteLabel={t('expenseList.delete')}
+                  isGroupActive={activeSwipeId !== null && activeSwipeId !== expense.id}
+                  onBecomeActive={() => setActiveSwipeId(expense.id)}
+                  onBecomeInactive={() => setActiveSwipeId(prev => prev === expense.id ? null : prev)}
+                >
+                <div onClick={() => setEditingExpenseId(expense.id)} className="relative p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-600 hover:border-gray-200 dark:hover:border-gray-500 transition-colors cursor-pointer">
                   {/* Riga 1: titolo + badge + importo + menu */}
                   <div className="flex items-center gap-2 min-w-0">
                     <h4 className="font-medium text-gray-800 dark:text-gray-200 truncate">{expense.title}</h4>
@@ -166,6 +179,7 @@ export function ExpenseList() {
                     </div>
                   </div>
                 </div>
+                </SwipeableItem>
               ))}
             </div>
           </div>
