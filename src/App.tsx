@@ -172,8 +172,9 @@ export default function App() {
         <div className="max-w-xl mx-auto flex">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
-            const showBadge = tab.id === 'expenses' && store.expenses.length > 0;
-            const badgeLabel = store.expenses.length > 99 ? '99+' : String(store.expenses.length);
+            const badgeCount = tab.id === 'expenses' ? store.expenses.length : tab.id === 'group' ? store.users.length : 0;
+            const showBadge = badgeCount > 0;
+            const badgeLabel = badgeCount > 99 ? '99+' : String(badgeCount);
             return (
               <button
                 key={tab.id}
